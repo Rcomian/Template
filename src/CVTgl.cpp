@@ -1,7 +1,7 @@
 #include "GVerbWidget.hpp"
-#include "../include/BaseWidget.hpp"
+#include "BaseWidget.hpp"
 
-struct CVTglModule : Module {
+struct CVTglModule : BaseModule {
 	enum ParamIds {
 		BUTTON_PARAM,
 		NUM_PARAMS
@@ -17,52 +17,48 @@ struct CVTglModule : Module {
 		NUM_LIGHTS
 	};
 
-	CVTglModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+	CVTglModule() : BaseModule() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+
+		configParam(CVTglModule::BUTTON_PARAM, 0.0, 1.0, 0.0);
 	}
+
 	void step() override;
 
-	// For more advanced Module features, read Rack's engine.hpp header file
-	// - toJson, fromJson: serialization of internal data
-	// - onSampleRateChange: event triggered by a change of sample rate
-	// - onReset, onRandomize, onCreate, onDelete: implements special behavior when user clicks these from the context menu
 };
 
 void CVTglModule::step() {
 	outputs[CV_OUTPUT].value = params[BUTTON_PARAM].value * 10.f;
 }
 
-struct CKSSWhite : SVGSwitch, ToggleSwitch {
+struct CKSSWhite : SvgSwitch {
 	CKSSWhite() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/CKSS_0_White.svg")));
-		addFrame(SVG::load(assetPlugin(plugin, "res/CKSS_1_White.svg")));
+		addFrame(SVG::load(assetPlugin(pluginInstance, "res/CKSS_0_White.svg")));
+		addFrame(SVG::load(assetPlugin(pluginInstance, "res/CKSS_1_White.svg")));
 	}
 };
 
 struct CVTglModuleWidget : BaseWidget {
-    TextField *textField;
+	LedDisplayTextField *textField;
 
 	CVTglModuleWidget(CVTglModule *module) : BaseWidget(module) {
-		colourHotZone = Rect(Vec(10, 10), Vec(50, 13));
-		backgroundHue = 0.754;
-		backgroundSaturation = 1.f;
-		backgroundLuminosity = 0.58f;
+		setPanel(SVG::load(assetPlugin(pluginInstance, "res/CVTgl.svg")));
 
-		setPanel(SVG::load(assetPlugin(plugin, "res/CVTgl.svg")));
+		addParam(createParam<CKSSWhite>(Vec(31, 172), module, CVTglModule::BUTTON_PARAM));
 
-		addParam(ParamWidget::create<CKSSWhite>(Vec(31, 172), module, CVTglModule::BUTTON_PARAM, 0.0, 1.0, 0.0));
+		addOutput(createPort<PJ301MPort>(Vec(26, 331), PortWidget::OUTPUT, module, CVTglModule::CV_OUTPUT));
 
-		addOutput(Port::create<PJ301MPort>(Vec(26, 331), Port::OUTPUT, module, CVTglModule::CV_OUTPUT));
-
-        textField = Widget::create<LedDisplayTextField>(Vec(7.5, 38.0));
+		textField = createWidget<LedDisplayTextField>(Vec(7.5, 38.0));
 		textField->box.size = Vec(60.0, 80.0);
 		textField->multiline = true;
-        ((LedDisplayTextField*)textField)->color = COLOR_WHITE;
+		((LedDisplayTextField*)textField)->color = componentlibrary::SCHEME_WHITE;
 		addChild(textField);
 
+		initColourChange(Rect(Vec(10, 10), Vec(50, 13)), module, 0.754f, 1.f, 0.58f);
 	}
 
 	json_t *toJson() override {
-		json_t *rootJ = BaseWidget::toJson();
+		json_t *rootJ = ModuleWidget::toJson();
 
 		// text
 		json_object_set_new(rootJ, "text", json_string(textField->text.c_str()));
@@ -71,7 +67,7 @@ struct CVTglModuleWidget : BaseWidget {
 	}
 
 	void fromJson(json_t *rootJ) override {
-		BaseWidget::fromJson(rootJ);
+		ModuleWidget::fromJson(rootJ);
 
 		// text
 		json_t *textJ = json_object_get(rootJ, "text");
@@ -85,4 +81,4 @@ struct CVTglModuleWidget : BaseWidget {
 // author name for categorization per plugin, module slug (should never
 // change), human-readable module name, and any number of tags
 // (found in `include/tags.hpp`) separated by commas.
-Model *modelCVTglModule = Model::create<CVTglModule, CVTglModuleWidget>("rcm", "rcm-CVTgl", "CVTgl", ENVELOPE_FOLLOWER_TAG);
+Model *modelCVTglModule = createModel<CVTglModule, CVTglModuleWidget>("rcm-CVTgl");

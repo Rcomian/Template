@@ -1,7 +1,7 @@
 #include "GVerbWidget.hpp"
-#include "../include/BaseWidget.hpp"
+#include "BaseWidget.hpp"
 
-struct CVMmtModule : Module {
+struct CVMmtModule : BaseModule {
 	enum ParamIds {
 		BUTTON_PARAM,
 		NUM_PARAMS
@@ -17,47 +17,43 @@ struct CVMmtModule : Module {
 		NUM_LIGHTS
 	};
 
-	CVMmtModule() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+	CVMmtModule() : BaseModule() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+
+		configParam(BUTTON_PARAM, 0.0, 10.0, 0.0);
 	}
 	void step() override;
-
-	// For more advanced Module features, read Rack's engine.hpp header file
-	// - toJson, fromJson: serialization of internal data
-	// - onSampleRateChange: event triggered by a change of sample rate
-	// - onReset, onRandomize, onCreate, onDelete: implements special behavior when user clicks these from the context menu
 };
 
 void CVMmtModule::step() {
 	outputs[CV_OUTPUT].value = params[BUTTON_PARAM].value;
 }
 
-struct PB61303White : SVGSwitch, MomentarySwitch {
+struct PB61303White : SvgSwitch {
 	PB61303White() {
-		addFrame(SVG::load(assetPlugin(plugin, "res/PB61303White.svg")));
+		addFrame(SVG::load(assetPlugin(pluginInstance, "res/PB61303White.svg")));
 	}
 };
 
 struct CVMmtModuleWidget : BaseWidget {
-    TextField *textField;
+	TextField *textField;
 
 	CVMmtModuleWidget(CVMmtModule *module) : BaseWidget(module) {
-		colourHotZone = Rect(Vec(10, 10), Vec(50, 13));
-		backgroundHue = 0.754;
-		backgroundSaturation = 1.f;
-		backgroundLuminosity = 0.58f;
+		setPanel(SVG::load(assetPlugin(pluginInstance, "res/CVMmt.svg")));
 
-		setPanel(SVG::load(assetPlugin(plugin, "res/CVMmt.svg")));
+		auto pbswitch = createParam<PB61303White>(Vec(10, 156.23), module, CVMmtModule::BUTTON_PARAM);
+		pbswitch->momentary = true;
+		addParam(pbswitch);
 
-		addParam(ParamWidget::create<PB61303White>(Vec(10, 156.23), module, CVMmtModule::BUTTON_PARAM, 0.0, 10.0, 0.0));
+		addOutput(createPort<PJ301MPort>(Vec(26, 331), PortWidget::OUTPUT, module, CVMmtModule::CV_OUTPUT));
 
-		addOutput(Port::create<PJ301MPort>(Vec(26, 331), Port::OUTPUT, module, CVMmtModule::CV_OUTPUT));
-
-        textField = Widget::create<LedDisplayTextField>(Vec(7.5, 38.0));
+		textField = createWidget<LedDisplayTextField>(Vec(7.5, 38.0));
 		textField->box.size = Vec(60.0, 80.0);
 		textField->multiline = true;
-        ((LedDisplayTextField*)textField)->color = COLOR_WHITE;
+		((LedDisplayTextField*)textField)->color = componentlibrary::SCHEME_WHITE;
 		addChild(textField);
 
+		initColourChange(Rect(Vec(10, 10), Vec(50, 13)), module, 0.754f, 1.f, 0.58f);
 	}
 
 	json_t *toJson() override {
@@ -84,4 +80,4 @@ struct CVMmtModuleWidget : BaseWidget {
 // author name for categorization per plugin, module slug (should never
 // change), human-readable module name, and any number of tags
 // (found in `include/tags.hpp`) separated by commas.
-Model *modelCVMmtModule = Model::create<CVMmtModule, CVMmtModuleWidget>("rcm", "rcm-CVMmt", "CVMmt", ENVELOPE_FOLLOWER_TAG);
+Model *modelCVMmtModule = createModel<CVMmtModule, CVMmtModuleWidget>("rcm-CVMmt");

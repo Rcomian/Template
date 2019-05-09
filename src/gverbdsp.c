@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/gverbdsp.h"
+#include "gverbdsp.h"
 
 #define TRUE 1
 #define FALSE 0

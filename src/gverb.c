@@ -24,9 +24,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "../include/gverbdsp.h"
-#include "../include/gverb.h"
-#include "../include/ladspa-util.h"
+#include "gverbdsp.h"
+#include "gverb.h"
+#include "ladspa-util.h"
 
 ty_gverb *gverb_new(int srate, float maxroomsize, float roomsize,
 		    float revtime,
