@@ -1,4 +1,4 @@
-#include "GVerbWidget.hpp"
+#include "plugin.hpp"
 #include "BaseWidget.hpp"
 
 struct CVMmtModule : BaseModule {
