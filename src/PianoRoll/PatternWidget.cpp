@@ -18,16 +18,11 @@ struct PatternChoice : LedDisplayChoice {
 		if (widget->module->inputs[PianoRollModule::PATTERN_INPUT].active == false) {
 			Vec pos = APP->scene->rack->mousePos.minus(widget->widget->box.pos).minus(widget->box.pos);
 			
-
-			DEBUG("In pattern choice: %f from mouse: %f, container: %f, control %f", pos.x, APP->scene->rack->mousePos.x, widget->widget->box.pos.x, widget->box.pos.x);
 			if (pos.x < 20) {
-				DEBUG("In prev pattern");
 				widget->module->transport.advancePattern(-1);
 			} else if (pos.x > 67) {
-				DEBUG("In next pattern");
 				widget->module->transport.advancePattern(1);
 			} else {
-				DEBUG("In pattern menu");
 				Menu *menu = createMenu();
 				menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Pattern"));
 
