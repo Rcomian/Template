@@ -243,6 +243,8 @@ void UnderlyingRollAreaWidget::drawSwimLanes(NVGcontext *ctx, const Rect &roll, 
 
 
 void UnderlyingRollAreaWidget::onButton(const event::Button &e) {
+  if (e.action == GLFW_RELEASE) { return; }
+
   e.consume(this);
 
   lastMouseDown = e.pos;
@@ -250,7 +252,7 @@ void UnderlyingRollAreaWidget::onButton(const event::Button &e) {
   std::tuple<bool, bool> octaveSwitch = findOctaveSwitch(e.pos);
   std::tuple<bool, int> measureSwitch = findMeasure(e.pos);
   
-  if (e.button == 1) {
+  if (e.button == GLFW_MOUSE_BUTTON_RIGHT) {
     std::tuple<bool, BeatDiv, Key> cell = findCell(e.pos);
     if (!std::get<0>(cell)) { Widget::onButton(e); return; }
 
@@ -259,13 +261,13 @@ void UnderlyingRollAreaWidget::onButton(const event::Button &e) {
     int beatDiv = std::get<1>(cell).num;
 
     patternData->toggleStepRetrigger(currentPattern, state->currentMeasure, beatDiv);
-  } else if (e.button == 0 && std::get<0>(octaveSwitch)) {
+  } else if (e.button == GLFW_MOUSE_BUTTON_LEFT && std::get<0>(octaveSwitch)) {
     state->lowestDisplayNote = clamp(state->lowestDisplayNote + 12, -1 * 12, 8 * 12);
     state->dirty = true;
-  } else if (e.button == 0 && std::get<1>(octaveSwitch)) {
+  } else if (e.button == GLFW_MOUSE_BUTTON_LEFT && std::get<1>(octaveSwitch)) {
     state->lowestDisplayNote = clamp(state->lowestDisplayNote - 12, -1 * 12, 8 * 12);
     state->dirty = true;
-  } else if (e.button == 0 && std::get<0>(measureSwitch)) {
+  } else if (e.button == GLFW_MOUSE_BUTTON_LEFT && std::get<0>(measureSwitch)) {
     state->currentMeasure = std::get<1>(measureSwitch);
     state->dirty = true;
   }
@@ -273,6 +275,8 @@ void UnderlyingRollAreaWidget::onButton(const event::Button &e) {
 }
 
 void UnderlyingRollAreaWidget::onDragStart(const event::DragStart &e) {
+  if (e.button != GLFW_MOUSE_BUTTON_LEFT) { return; }
+
   e.consume(this);
 
   Vec pos = lastMouseDown;
