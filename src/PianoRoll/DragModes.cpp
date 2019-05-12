@@ -22,7 +22,8 @@ PlayPositionDragging::~PlayPositionDragging() {
 }
 
 void PlayPositionDragging::onDragMove(const rack::event::DragMove& e) {
-	setNote(e.mouseDelta);
+	Vec mouseDelta(e.mouseDelta.div(APP->scene->rackScroll->zoomWidget->zoom));
+	setNote(mouseDelta);
 }
 
 void PlayPositionDragging::setNote(Vec mouseRel) {
@@ -98,7 +99,9 @@ void KeyboardDragging::onDragMove(const rack::event::DragMove& e) {
 	float speed = 1.f;
 	float range = 1.f;
 
-	float delta = KEYBOARDDRAG_SENSITIVITY * e.mouseDelta.y * speed * range;
+	Vec mouseDelta(e.mouseDelta.div(APP->scene->rackScroll->zoomWidget->zoom));
+
+	float delta = KEYBOARDDRAG_SENSITIVITY * mouseDelta.y * speed * range;
 	if ((APP->window->getMods() & GLFW_MOD_CONTROL)) {
 		delta /= 16.f;
 	}
@@ -148,7 +151,9 @@ NotePaintDragging::~NotePaintDragging() {
 }
 
 void NotePaintDragging::onDragMove(const rack::event::DragMove& e) {
-  Vec pos(widget->lastMouseDown.x + e.mouseDelta.x, widget->lastMouseDown.y + e.mouseDelta.y);
+	Vec mouseDelta(e.mouseDelta.div(APP->scene->rackScroll->zoomWidget->zoom));
+
+  Vec pos(widget->lastMouseDown.x + mouseDelta.x, widget->lastMouseDown.y + mouseDelta.y);
 	widget->lastMouseDown = pos;
 
 	std::tuple<bool, BeatDiv, Key> cell = widget->findCell(pos);
