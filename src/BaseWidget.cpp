@@ -10,7 +10,7 @@ static const float COLOURDRAG_SENSITIVITY = 0.0015f;
 void ColourChangeWidget::onButton(const event::Button &e) {
   Widget::onButton(e);
   e.stopPropagating();
-  if (e.button == GLFW_MOUSE_BUTTON_LEFT && (APP->window->getMods() & GLFW_MOD_SHIFT) == GLFW_MOD_SHIFT) {
+  if (e.button == GLFW_MOUSE_BUTTON_LEFT && (APP->window->getMods() & GLFW_MOD_SHIFT)) {
     // Consume if not consumed by child
     if (!e.isConsumed())
       e.consume(this);
