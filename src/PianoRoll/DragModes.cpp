@@ -142,6 +142,8 @@ NotePaintDragging::NotePaintDragging(UnderlyingRollAreaWidget* widget, PatternDa
 	} else {
 		makeStepsActive = true;
 	}
+
+	APP->history->push(new PatternData::PatternAction("note painting", patternData->moduleId, transport->currentPattern(), *patternData));
 }
 
 NotePaintDragging::~NotePaintDragging() {
@@ -211,6 +213,8 @@ VelocityDragging::VelocityDragging(UnderlyingRollAreaWidget* widget, PatternData
 
 	roll.size.y = roll.size.y / 2.f;
 	showLow = roll.contains(widget->lastMouseDown);
+
+	APP->history->push(new PatternData::PatternAction("change velocity", patternData->moduleId, transport->currentPattern(), *patternData));
 }
 
 VelocityDragging::~VelocityDragging() {

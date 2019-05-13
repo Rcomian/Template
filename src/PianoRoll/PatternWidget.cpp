@@ -3,11 +3,64 @@
 #include "PianoRollWidget.hpp"
 #include "../plugin.hpp"
 
+struct ChangePatternAction : history::ModuleAction {
+	int undoPattern;
+	int redoPattern;
+	int expectedUndoPattern;
+
+	ChangePatternAction(std::string name, int moduleId, int previousPattern, int nextPattern) {
+		this->name = name;
+		this->moduleId = moduleId;
+
+		expectedUndoPattern = nextPattern;
+		undoPattern = previousPattern;
+	}
+
+	void undo() override {
+		app::ModuleWidget *mw = APP->scene->rack->getModule(moduleId);
+		assert(mw);
+		PianoRollModule *module = dynamic_cast<PianoRollModule*>(mw->module);
+		assert(module);
+
+		int currentPattern = module->transport.currentPattern();
+		int currentMeasure = module->transport.currentMeasure();
+		if (currentPattern == expectedUndoPattern) {
+			module->transport.setPattern(undoPattern);
+			redoPattern = currentPattern;
+			expectedUndoPattern = undoPattern;
+		} else {
+			// Disable redo
+			expectedUndoPattern = -1;
+		}
+	}
+
+	void redo() override {
+		app::ModuleWidget *mw = APP->scene->rack->getModule(moduleId);
+		assert(mw);
+		PianoRollModule *module = dynamic_cast<PianoRollModule*>(mw->module);
+		assert(module);
+
+		int currentPattern = module->transport.currentPattern();
+		int currentMeasure = module->transport.currentMeasure();
+		if (currentPattern == expectedUndoPattern) {
+			module->transport.setPattern(redoPattern);
+			undoPattern = currentPattern;
+			expectedUndoPattern = redoPattern;
+		} else {
+			// Disable redo
+			expectedUndoPattern = -1;
+		}
+	}
+};
+
 struct PatternItem : MenuItem {
 	PatternWidget *widget = NULL;
 	int pattern;
 	void onAction(const event::Action &e) override {
+		int previousPattern = widget->module->transport.currentPattern();
+		int previousMeasure = widget->module->transport.currentMeasure();
 		widget->module->transport.setPattern(pattern);
+		APP->history->push(new ChangePatternAction(stringf("change pattern"), widget->module->patternData.moduleId, previousPattern, widget->module->transport.currentPattern()));
 	}
 };
 
@@ -19,9 +72,15 @@ struct PatternChoice : LedDisplayChoice {
 			Vec pos = APP->scene->rack->mousePos.minus(widget->widget->box.pos).minus(widget->box.pos);
 			
 			if (pos.x < 20) {
+				int previousPattern = widget->module->transport.currentPattern();
+				int previousMeasure = widget->module->transport.currentMeasure();
 				widget->module->transport.advancePattern(-1);
+				APP->history->push(new ChangePatternAction(stringf("change pattern"), widget->module->patternData.moduleId, previousPattern, widget->module->transport.currentPattern()));
 			} else if (pos.x > 67) {
+				int previousPattern = widget->module->transport.currentPattern();
+				int previousMeasure = widget->module->transport.currentMeasure();
 				widget->module->transport.advancePattern(1);
+				APP->history->push(new ChangePatternAction(stringf("change pattern"), widget->module->patternData.moduleId, previousPattern, widget->module->transport.currentPattern()));
 			} else {
 				Menu *menu = createMenu();
 				menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Pattern"));
@@ -46,6 +105,7 @@ struct MeasuresItem : MenuItem {
 	PatternWidget *widget = NULL;
 	int measures;
 	void onAction(const event::Action &e) override {
+		APP->history->push(new PatternData::PatternAction("set measures", widget->module->patternData.moduleId, widget->module->transport.currentPattern(), widget->module->patternData));
 		widget->module->patternData.setMeasures(widget->module->transport.currentPattern(), measures);
 	}
 };
@@ -75,6 +135,7 @@ struct BeatsPerMeasureItem : MenuItem {
 	PatternWidget *widget = NULL;
 	int beatsPerMeasure;
 	void onAction(const event::Action &e) override {
+		APP->history->push(new PatternData::PatternAction("set beats", widget->module->patternData.moduleId, widget->module->transport.currentPattern(), widget->module->patternData));
 		widget->module->patternData.setBeatsPerMeasure(widget->module->transport.currentPattern(), beatsPerMeasure);
 	}
 };
@@ -104,6 +165,7 @@ struct DivisionsPerBeatItem : MenuItem {
 	PatternWidget *widget = NULL;
 	int divisionsPerBeat;
 	void onAction(const event::Action &e) override {
+		APP->history->push(new PatternData::PatternAction("set divisions", widget->module->patternData.moduleId, widget->module->transport.currentPattern(), widget->module->patternData));
 		widget->module->patternData.setDivisionsPerBeat(widget->module->transport.currentPattern(), divisionsPerBeat);
 	}
 };

@@ -1,8 +1,7 @@
 #include <utility>
 #include "window.hpp"
 #include "RollAreaWidget.hpp"
-#include "PatternData.hpp"
-#include "Transport.hpp"
+#include "PianoRollModule.hpp"
 #include "DragModes.hpp"
 #include "../plugin.hpp"
 #include "string.h"
@@ -260,6 +259,7 @@ void UnderlyingRollAreaWidget::onButton(const event::Button &e) {
 
     int beatDiv = std::get<1>(cell).num;
 
+  	APP->history->push(new PatternData::PatternAction("toggle retrigger", patternData->moduleId, transport->currentPattern(), *patternData));
     patternData->toggleStepRetrigger(currentPattern, state->currentMeasure, beatDiv);
   } else if (e.button == GLFW_MOUSE_BUTTON_LEFT && std::get<0>(octaveSwitch)) {
     state->lowestDisplayNote = clamp(state->lowestDisplayNote + 12, -1 * 12, 8 * 12);

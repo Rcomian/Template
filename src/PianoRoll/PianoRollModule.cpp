@@ -70,6 +70,10 @@ int quantizePitch(float voct) {
 	return ((oct + 4) * 12) + note;
 }
 
+void PianoRollModule::onAdd() {
+	patternData.moduleId = this->id;
+}
+
 void PianoRollModule::step() {
 	bool clockTick = false;
 

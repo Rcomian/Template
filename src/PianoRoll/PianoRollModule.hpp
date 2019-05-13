@@ -69,6 +69,7 @@ struct PianoRollModule : BaseModule {
 
 	void step() override;
 	void onReset() override;
+	void onAdd() override;
 
 	json_t *dataToJson() override;
 	void dataFromJson(json_t *rootJ) override;

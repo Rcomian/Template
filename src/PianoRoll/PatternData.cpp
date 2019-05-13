@@ -1,9 +1,49 @@
-#include "../PianoRoll/PatternData.hpp"
 #include "rack0.hpp"
+#include "PianoRollModule.hpp"
+#include "../plugin.hpp"
 
 using namespace rack;
 
 static const int MAX_PATTERNS=64;
+
+
+PatternData::PatternAction::PatternAction(std::string name, int moduleId, int patternId, PatternData& patternData) : patternId(patternId) {
+  this->name = name;
+  this->moduleId = moduleId;
+
+  if (patternData.patterns.size() < patternId) {
+    patternData.patterns.resize(patternId);
+  }
+  patternData.copyPatternData(patternData.patterns[patternId], undoPatternData);
+}
+
+void PatternData::PatternAction::undo() {
+  app::ModuleWidget *mw = APP->scene->rack->getModule(moduleId);
+  assert(mw);
+  PianoRollModule *module = dynamic_cast<PianoRollModule*>(mw->module);
+  assert(module);
+
+  if (module->patternData.patterns.size() < patternId) {
+    module->patternData.patterns.resize(patternId);
+  }
+  module->patternData.copyPatternData(module->patternData.patterns[patternId], redoPatternData);
+  module->patternData.copyPatternData(undoPatternData, module->patternData.patterns[patternId]);
+  module->patternData.dirty = true;
+}
+
+void PatternData::PatternAction::redo() {
+  app::ModuleWidget *mw = APP->scene->rack->getModule(moduleId);
+  assert(mw);
+  PianoRollModule *module = dynamic_cast<PianoRollModule*>(mw->module);
+  assert(module);
+
+  if (module->patternData.patterns.size() < patternId) {
+    module->patternData.patterns.resize(patternId);
+  }
+  module->patternData.copyPatternData(module->patternData.patterns[patternId], undoPatternData);
+  module->patternData.copyPatternData(redoPatternData, module->patternData.patterns[patternId]);
+  module->patternData.dirty = true;
+}
 
 PatternData::PatternData() {
   patterns.resize(MAX_PATTERNS);

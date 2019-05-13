@@ -48,7 +48,6 @@ public:
   bool dirty = true;
   bool consumeDirty();
 
-private:
   struct Step {
     int pitch = 0;
     float velocity = 0.f;
@@ -77,4 +76,16 @@ private:
 
   Pattern copiedPattern;
   Measure copiedMeasure;
+  int moduleId = -1;
+
+  struct PatternAction : rack::history::ModuleAction {
+    PatternData::Pattern undoPatternData;
+    PatternData::Pattern redoPatternData;
+    int patternId;
+
+    PatternAction(std::string name, int moduleId, int patternId, PatternData& patternData);
+    void undo() override;
+    void redo() override;
+  };
+
 };
