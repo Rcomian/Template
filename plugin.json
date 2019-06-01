@@ -1,6 +1,7 @@
 {
-	"slug": "rcm-modules",
+	"slug": "rcm",
 	"name": "RCM",
+	"brand": "RCM",
 	"version": "1.0.0",
 	"license": "GPL-2.0-or-later",
 	"author": "RCM",
@@ -63,6 +64,12 @@
 			"slug": "rcm-pianoroll",
 			"name": "Piano Roll",
 			"description": "Simple Piano Roll for sequencing",
+			"tags": []
+		},
+		{
+			"slug": "AudioInterface16",
+			"name": "Audio Interface 16",
+			"description": "A reskin of the Audio16 Interface (only kept for backwards compat)",
 			"tags": []
 		}
 	]
