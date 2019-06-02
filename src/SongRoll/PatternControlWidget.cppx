@@ -46,9 +46,9 @@ namespace SongRoll {
     Rect minus(Vec(0,10), Vec(box.size.x*0.40,14));
     Rect plus(Vec(box.size.x*0.60,10), Vec(box.size.x*0.40,14));
 
-    if (minus.contains(e.pos)) {
+    if (minus.isContaining(e.pos)) {
       pattern = clamp(pattern - 1, 0, 63);
-    } else if (plus.contains(e.pos)) {
+    } else if (plus.isContaining(e.pos)) {
       pattern = clamp(pattern + 1, 0, 63);
     }
   }

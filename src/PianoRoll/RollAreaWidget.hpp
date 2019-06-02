@@ -1,4 +1,4 @@
-#include "rack0.hpp"
+#include "rack.hpp"
 
 class Auditioner;
 class PatternData;
@@ -64,15 +64,15 @@ public:
   std::tuple<bool, bool> findOctaveSwitch(rack::Vec pos);
   std::tuple<bool, BeatDiv, Key> findCell(rack::Vec pos);
 
-  void drawKeys(NVGcontext *ctx, const std::vector<Key> &keys);
-  void drawSwimLanes(NVGcontext *ctx, const rack::Rect &roll, const std::vector<Key> &keys);
-  void drawBeats(NVGcontext *ctx, const std::vector<BeatDiv> &beatDivs);
-  void drawNotes(NVGcontext *ctx, const std::vector<Key> &keys, const std::vector<BeatDiv> &beatDivs);
-  void drawMeasures(NVGcontext *ctx);
-  void drawPlayPosition(NVGcontext *ctx);
-  void drawVelocityInfo(NVGcontext *ctx);
+  void drawKeys(const rack::widget::Widget::DrawArgs &args, const std::vector<Key> &keys);
+  void drawSwimLanes(const rack::widget::Widget::DrawArgs &args, const rack::Rect &roll, const std::vector<Key> &keys);
+  void drawBeats(const rack::widget::Widget::DrawArgs &args, const std::vector<BeatDiv> &beatDivs);
+  void drawNotes(const rack::widget::Widget::DrawArgs &args, const std::vector<Key> &keys, const std::vector<BeatDiv> &beatDivs);
+  void drawMeasures(const rack::widget::Widget::DrawArgs &args);
+  void drawPlayPosition(const rack::widget::Widget::DrawArgs &args);
+  void drawVelocityInfo(const rack::widget::Widget::DrawArgs &args);
 
-  void draw(NVGcontext* ctx) override;
+  void draw(const rack::widget::Widget::DrawArgs &args) override;
 
 	void onButton(const rack::event::Button& e) override;
 	void onDragStart(const rack::event::DragStart& e) override;

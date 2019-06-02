@@ -1,4 +1,4 @@
-#include "rack0.hpp"
+#include "rack.hpp"
 
 #include "../BaseWidget.hpp"
 #include "PatternData.hpp"
@@ -42,32 +42,32 @@ struct PianoRollModule : BaseModule {
 		NUM_LIGHTS
 	};
 
-	rack::SchmittTrigger clockInputTrigger;
-	rack::SchmittTrigger resetInputTrigger;
-	rack::SchmittTrigger runInputTrigger;
+	rack::dsp::SchmittTrigger clockInputTrigger;
+	rack::dsp::SchmittTrigger resetInputTrigger;
+	rack::dsp::SchmittTrigger runInputTrigger;
 
-	rack::PulseGenerator retriggerOutputPulse;
-	rack::PulseGenerator eopOutputPulse;
-	rack::PulseGenerator gateOutputPulse;
+	rack::dsp::PulseGenerator retriggerOutputPulse;
+	rack::dsp::PulseGenerator eopOutputPulse;
+	rack::dsp::PulseGenerator gateOutputPulse;
 
 	Auditioner auditioner;
 
 	ValueChangeTrigger<bool> runInputActive;
-	rack::RingBuffer<float, 16> clockBuffer;
+	rack::dsp::RingBuffer<float, 16> clockBuffer;
 	int clockDelay = 0;
 
-	rack::SchmittTrigger recordingIn;
-	rack::RingBuffer<float, 512> voctInBuffer;
-	rack::RingBuffer<float, 512> gateInBuffer;
-	rack::RingBuffer<float, 512> retriggerInBuffer;
-	rack::RingBuffer<float, 512> velocityInBuffer;
+	rack::dsp::SchmittTrigger recordingIn;
+	rack::dsp::RingBuffer<float, 512> voctInBuffer;
+	rack::dsp::RingBuffer<float, 512> gateInBuffer;
+	rack::dsp::RingBuffer<float, 512> retriggerInBuffer;
+	rack::dsp::RingBuffer<float, 512> velocityInBuffer;
 
   PatternData patternData;
   Transport transport;
 
 	PianoRollModule();
 
-	void step() override;
+	void process(const ProcessArgs &args) override;
 	void onReset() override;
 	void onAdd() override;
 

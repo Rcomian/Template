@@ -37,7 +37,7 @@ bool WidgetState::consumeDirty() {
 }
 
 UnderlyingRollAreaWidget::UnderlyingRollAreaWidget() {
-  fonthandle = nvgCreateFont(APP->window->vg, assetGlobal("res/fonts/DejaVuSans.ttf").c_str(), assetGlobal("res/fonts/DejaVuSans.ttf").c_str());
+  fonthandle = nvgCreateFont(APP->window->vg, asset::system("res/fonts/DejaVuSans.ttf").c_str(), asset::system("res/fonts/DejaVuSans.ttf").c_str());
 }
 UnderlyingRollAreaWidget::~UnderlyingRollAreaWidget() {
 }
@@ -117,7 +117,7 @@ std::tuple<bool, int> UnderlyingRollAreaWidget::findMeasure(Vec pos) {
   float boxHeight = topMargins * 0.75;
 
   for (int i = 0; i < numberOfMeasures; i++) {
-    if (Rect(Vec(roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - boxHeight), Vec(widthPerMeasure, boxHeight)).contains(pos)) {
+    if (Rect(Vec(roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - boxHeight), Vec(widthPerMeasure, boxHeight)).isContaining(pos)) {
       return std::make_tuple(true, i);
     }
   }
@@ -129,8 +129,8 @@ std::tuple<bool, bool> UnderlyingRollAreaWidget::findOctaveSwitch(Vec pos) {
   Rect roll = Rect(Vec(0,0), Vec(box.size.x, box.size.y));
   Rect keysArea = reserveKeysArea(roll);
 
-  bool octaveUp = Rect(Vec(keysArea.pos.x, roll.pos.y), Vec(keysArea.size.x, keysArea.pos.y)).contains(pos);
-  bool octaveDown = Rect(Vec(keysArea.pos.x, keysArea.pos.y + keysArea.size.y), Vec(keysArea.size.x, keysArea.pos.y)).contains(pos);
+  bool octaveUp = Rect(Vec(keysArea.pos.x, roll.pos.y), Vec(keysArea.size.x, keysArea.pos.y)).isContaining(pos);
+  bool octaveDown = Rect(Vec(keysArea.pos.x, keysArea.pos.y + keysArea.size.y), Vec(keysArea.size.x, keysArea.pos.y)).isContaining(pos);
   
   return std::make_tuple(octaveUp, octaveDown);
 }
@@ -139,7 +139,7 @@ std::tuple<bool, BeatDiv, Key> UnderlyingRollAreaWidget::findCell(Vec pos) {
   Rect roll = Rect(Vec(0,0), Vec(box.size.x, box.size.y));
   Rect keysArea = reserveKeysArea(roll);
 
-  if (!roll.contains(pos)) {
+  if (!roll.isContaining(pos)) {
     return std::make_tuple(false, BeatDiv(), Key());
   }
 
@@ -148,7 +148,7 @@ std::tuple<bool, BeatDiv, Key> UnderlyingRollAreaWidget::findCell(Vec pos) {
   Key cellKey;
 
   for (auto const& key: keys) {
-    if (Rect(Vec(key.pos.x + key.size.x, key.pos.y), Vec(roll.size.x, key.size.y)).contains(pos)) {
+    if (Rect(Vec(key.pos.x + key.size.x, key.pos.y), Vec(roll.size.x, key.size.y)).isContaining(pos)) {
       cellKey = key;
       keyFound = true;
       break;
@@ -160,7 +160,7 @@ std::tuple<bool, BeatDiv, Key> UnderlyingRollAreaWidget::findCell(Vec pos) {
   BeatDiv cellBeatDiv;
 
   for (auto const& beatDiv: beatDivs) {
-    if (Rect(beatDiv.pos, beatDiv.size).contains(pos)) {
+    if (Rect(beatDiv.pos, beatDiv.size).isContaining(pos)) {
       cellBeatDiv = beatDiv;
       beatDivFound = true;
       break;
@@ -170,74 +170,74 @@ std::tuple<bool, BeatDiv, Key> UnderlyingRollAreaWidget::findCell(Vec pos) {
   return std::make_tuple(keyFound && beatDivFound, cellBeatDiv, cellKey);
 }
 
-void UnderlyingRollAreaWidget::drawKeys(NVGcontext *ctx, const std::vector<Key> &keys) {
+void UnderlyingRollAreaWidget::drawKeys(const DrawArgs &args, const std::vector<Key> &keys) {
   for (auto const& key: keys) {
-    nvgBeginPath(ctx);
-    nvgStrokeWidth(ctx, 0.5f);
-    nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0));
+    nvgBeginPath(args.vg);
+    nvgStrokeWidth(args.vg, 0.5f);
+    nvgStrokeColor(args.vg, nvgRGBAf(0.f, 0.f, 0.f, 1.0));
 
     if (key.sharp) {
-      nvgFillColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0));
+      nvgFillColor(args.vg, nvgRGBAf(0.f, 0.f, 0.f, 1.0));
     } else {
-      nvgFillColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 1.0));
+      nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, 1.0));
     }
-    nvgRect(ctx, key.pos.x, key.pos.y, key.size.x, key.size.y);
+    nvgRect(args.vg, key.pos.x, key.pos.y, key.size.x, key.size.y);
 
-    nvgStroke(ctx);
-    nvgFill(ctx);
+    nvgStroke(args.vg);
+    nvgFill(args.vg);
 
     if (key.num == 0) {
-      Vec textpos(key.pos.x + max(6.f, (key.size.x * 0.5)), key.pos.y + (key.size.y * 0.5));
+      Vec textpos(key.pos.x + std::max(6.f, (float)(key.size.x * 0.5)), key.pos.y + (key.size.y * 0.5));
 
-      nvgBeginPath(ctx);
+      nvgBeginPath(args.vg);
   		std::string coct = stringf("C%d", key.oct);
-      nvgFontSize(ctx,max(6.f, key.size.y));
-      nvgFontFaceId(ctx, fonthandle);
-      nvgTextLetterSpacing(ctx, 2.0);
-      nvgFillColor(ctx, nvgRGB(0.f, 0.f, 0.f));
-      nvgTextAlign(ctx, NVG_ALIGN_CENTER + NVG_ALIGN_MIDDLE);
-      nvgText(ctx, textpos.x, textpos.y, coct.c_str(), NULL);
+      nvgFontSize(args.vg,std::max(6.f, key.size.y));
+      nvgFontFaceId(args.vg, fonthandle);
+      nvgTextLetterSpacing(args.vg, 2.0);
+      nvgFillColor(args.vg, nvgRGB(0.f, 0.f, 0.f));
+      nvgTextAlign(args.vg, NVG_ALIGN_CENTER + NVG_ALIGN_MIDDLE);
+      nvgText(args.vg, textpos.x, textpos.y, coct.c_str(), NULL);
     }
   }
 }
 
-void UnderlyingRollAreaWidget::drawSwimLanes(NVGcontext *ctx, const Rect &roll, const std::vector<Key> &keys) {
+void UnderlyingRollAreaWidget::drawSwimLanes(const DrawArgs &args, const Rect &roll, const std::vector<Key> &keys) {
 
   for (auto const& key: keys) {
 
     if (key.sharp) {
-      nvgBeginPath(ctx);
-      nvgFillColor(ctx, nvgRGBAf(0.f, 0.0f, 0.0f, 0.25f));
-      nvgRect(ctx, roll.pos.x, key.pos.y + 1, roll.size.x, key.size.y - 2);
-      nvgFill(ctx);
+      nvgBeginPath(args.vg);
+      nvgFillColor(args.vg, nvgRGBAf(0.f, 0.0f, 0.0f, 0.25f));
+      nvgRect(args.vg, roll.pos.x, key.pos.y + 1, roll.size.x, key.size.y - 2);
+      nvgFill(args.vg);
     }
 
-    nvgBeginPath(ctx);
+    nvgBeginPath(args.vg);
     if (key.num == 11) {
-      nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
-      nvgStrokeWidth(ctx, 1.0f);
+      nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
+      nvgStrokeWidth(args.vg, 1.0f);
     } else {
-      nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
-      nvgStrokeWidth(ctx, 0.5f);
+      nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
+      nvgStrokeWidth(args.vg, 0.5f);
     }
-    nvgMoveTo(ctx, roll.pos.x, key.pos.y);
-    nvgLineTo(ctx, roll.pos.x + roll.size.x, key.pos.y);
-    nvgStroke(ctx);
+    nvgMoveTo(args.vg, roll.pos.x, key.pos.y);
+    nvgLineTo(args.vg, roll.pos.x + roll.size.x, key.pos.y);
+    nvgStroke(args.vg);
   }
 
-  nvgBeginPath(ctx);
-  nvgStrokeWidth(ctx, 1.f);
-  nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0f));
-  nvgMoveTo(ctx, roll.pos.x, keys.back().pos.y);
-  nvgLineTo(ctx, roll.pos.x + roll.size.x, keys.back().pos.y);
-  nvgStroke(ctx);
+  nvgBeginPath(args.vg);
+  nvgStrokeWidth(args.vg, 1.f);
+  nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0f));
+  nvgMoveTo(args.vg, roll.pos.x, keys.back().pos.y);
+  nvgLineTo(args.vg, roll.pos.x + roll.size.x, keys.back().pos.y);
+  nvgStroke(args.vg);
 
-  nvgBeginPath(ctx);
-  nvgStrokeWidth(ctx, 1.f);
-  nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0f));
-  nvgMoveTo(ctx, roll.pos.x, keys[0].pos.y + keys[0].size.y);
-  nvgLineTo(ctx, roll.pos.x + roll.size.x, keys[0].pos.y + keys[0].size.y);
-  nvgStroke(ctx);
+  nvgBeginPath(args.vg);
+  nvgStrokeWidth(args.vg, 1.f);
+  nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0f));
+  nvgMoveTo(args.vg, roll.pos.x, keys[0].pos.y + keys[0].size.y);
+  nvgLineTo(args.vg, roll.pos.x + roll.size.x, keys[0].pos.y + keys[0].size.y);
+  nvgStroke(args.vg);
 }
 
 
@@ -285,7 +285,7 @@ void UnderlyingRollAreaWidget::onDragStart(const event::DragStart &e) {
 
   Rect roll = Rect(Vec(0,0), Vec(box.size.x, box.size.y));
   Rect keysArea = reserveKeysArea(roll);
-  bool inKeysArea = keysArea.contains(pos);
+  bool inKeysArea = keysArea.isContaining(pos);
 
   Rect playDragArea(Vec(roll.pos.x, roll.pos.y), Vec(roll.size.x, topMargins));
 
@@ -295,7 +295,7 @@ void UnderlyingRollAreaWidget::onDragStart(const event::DragStart &e) {
     currentDragType = new NotePaintDragging(this, patternData, transport, auditioner);
   } else if (inKeysArea) {
     currentDragType = new KeyboardDragging(this->state);
-  } else if (playDragArea.contains(pos)) {
+  } else if (playDragArea.isContaining(pos)) {
     currentDragType = new PlayPositionDragging(auditioner, this, transport);
   } else if (std::get<0>(measureSwitch)) {
     currentDragType = new LockMeasureDragging(state, transport);
@@ -319,33 +319,33 @@ void UnderlyingRollAreaWidget::onDragEnd(const event::DragEnd &e) {
   }
 }
 
-void UnderlyingRollAreaWidget::drawBeats(NVGcontext *ctx, const std::vector<BeatDiv> &beatDivs) {
+void UnderlyingRollAreaWidget::drawBeats(const DrawArgs &args, const std::vector<BeatDiv> &beatDivs) {
   bool first = true;
   for (const auto &beatDiv : beatDivs) {
 
-    nvgBeginPath(ctx);
+    nvgBeginPath(args.vg);
 
     if (beatDiv.beat && !first) {
-      nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0));
-      nvgStrokeWidth(ctx, 1.0f);
+      nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0));
+      nvgStrokeWidth(args.vg, 1.0f);
     } else if (beatDiv.triplet) {
-      nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0));
-      nvgStrokeWidth(ctx, 0.5f);
+      nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0));
+      nvgStrokeWidth(args.vg, 0.5f);
     } else {
-      nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5));
-      nvgStrokeWidth(ctx, 0.5f);
+      nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5));
+      nvgStrokeWidth(args.vg, 0.5f);
     }
 
-    nvgMoveTo(ctx, beatDiv.pos.x, beatDiv.pos.y);
-    nvgLineTo(ctx, beatDiv.pos.x, beatDiv.pos.y + beatDiv.size.y);
+    nvgMoveTo(args.vg, beatDiv.pos.x, beatDiv.pos.y);
+    nvgLineTo(args.vg, beatDiv.pos.x, beatDiv.pos.y + beatDiv.size.y);
 
-    nvgStroke(ctx);
+    nvgStroke(args.vg);
 
     first = false;
   }
 }
 
-void UnderlyingRollAreaWidget::drawNotes(NVGcontext *ctx, const std::vector<Key> &keys, const std::vector<BeatDiv> &beatDivs) {
+void UnderlyingRollAreaWidget::drawNotes(const DrawArgs &args, const std::vector<Key> &keys, const std::vector<BeatDiv> &beatDivs) {
   int lowPitch = keys.front().num + (keys.front().oct * 12);
   int highPitch = keys.back().num + (keys.back().oct * 12);
 
@@ -359,24 +359,24 @@ void UnderlyingRollAreaWidget::drawNotes(NVGcontext *ctx, const std::vector<Key>
     int pitch = patternData->getStepPitch(pattern, state->currentMeasure, beatDiv.num);
 
     if (pitch < lowPitch) {
-      nvgBeginPath(ctx);
-      nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
-      nvgStrokeWidth(ctx, 1.f);
-      nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
-      nvgRect(ctx, beatDiv.pos.x, roll.pos.y + roll.size.y - topMargins, beatDiv.size.x, 1);
-      nvgStroke(ctx);
-      nvgFill(ctx);
+      nvgBeginPath(args.vg);
+      nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+      nvgStrokeWidth(args.vg, 1.f);
+      nvgFillColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+      nvgRect(args.vg, beatDiv.pos.x, roll.pos.y + roll.size.y - topMargins, beatDiv.size.x, 1);
+      nvgStroke(args.vg);
+      nvgFill(args.vg);
       continue;
     }
 
     if (pitch > highPitch) {
-      nvgBeginPath(ctx);
-      nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
-      nvgStrokeWidth(ctx, 1.f);
-      nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
-      nvgRect(ctx, beatDiv.pos.x, roll.pos.y + topMargins -1, beatDiv.size.x, 1);
-      nvgStroke(ctx);
-      nvgFill(ctx);
+      nvgBeginPath(args.vg);
+      nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+      nvgStrokeWidth(args.vg, 1.f);
+      nvgFillColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+      nvgRect(args.vg, beatDiv.pos.x, roll.pos.y + topMargins -1, beatDiv.size.x, 1);
+      nvgStroke(args.vg);
+      nvgFill(args.vg);
       continue;
     }
 
@@ -385,32 +385,32 @@ void UnderlyingRollAreaWidget::drawNotes(NVGcontext *ctx, const std::vector<Key>
 
         float velocitySize = (patternData->getStepVelocity(pattern, state->currentMeasure, beatDiv.num) * key.size.y * 0.9f) + (key.size.y * 0.1f);
 
-        nvgBeginPath(ctx);
-        nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.25f));
-        nvgStrokeWidth(ctx, 0.5f);
-        nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.25f));
-        nvgRect(ctx, beatDiv.pos.x, key.pos.y, beatDiv.size.x, (key.size.y - velocitySize));
-        nvgStroke(ctx);
-        nvgFill(ctx);
+        nvgBeginPath(args.vg);
+        nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 0.25f));
+        nvgStrokeWidth(args.vg, 0.5f);
+        nvgFillColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 0.25f));
+        nvgRect(args.vg, beatDiv.pos.x, key.pos.y, beatDiv.size.x, (key.size.y - velocitySize));
+        nvgStroke(args.vg);
+        nvgFill(args.vg);
 
-        nvgBeginPath(ctx);
-        nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
-        nvgStrokeWidth(ctx, 0.5f);
-        nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
-        nvgRect(ctx, beatDiv.pos.x, key.pos.y + (key.size.y - velocitySize), beatDiv.size.x, velocitySize);
-        nvgStroke(ctx);
-        nvgFill(ctx);
+        nvgBeginPath(args.vg);
+        nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 0.5f));
+        nvgStrokeWidth(args.vg, 0.5f);
+        nvgFillColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+        nvgRect(args.vg, beatDiv.pos.x, key.pos.y + (key.size.y - velocitySize), beatDiv.size.x, velocitySize);
+        nvgStroke(args.vg);
+        nvgFill(args.vg);
 
 
         if (patternData->isStepRetriggered(pattern, state->currentMeasure, beatDiv.num)) {
-          nvgBeginPath(ctx);
+          nvgBeginPath(args.vg);
 
-          nvgStrokeWidth(ctx, 0.f);
-          nvgFillColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
+          nvgStrokeWidth(args.vg, 0.f);
+          nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
 
-          nvgRect(ctx, beatDiv.pos.x, key.pos.y, beatDiv.size.x / 4.f, key.size.y);
-          nvgStroke(ctx);
-          nvgFill(ctx);
+          nvgRect(args.vg, beatDiv.pos.x, key.pos.y, beatDiv.size.x / 4.f, key.size.y);
+          nvgStroke(args.vg);
+          nvgFill(args.vg);
         }
 
         break;
@@ -420,7 +420,7 @@ void UnderlyingRollAreaWidget::drawNotes(NVGcontext *ctx, const std::vector<Key>
   }
 }
 
-void UnderlyingRollAreaWidget::drawMeasures(NVGcontext *ctx) {
+void UnderlyingRollAreaWidget::drawMeasures(const DrawArgs &args) {
   Rect roll = Rect(Vec(0,0), Vec(box.size.x, box.size.y));
   reserveKeysArea(roll);
 
@@ -431,36 +431,36 @@ void UnderlyingRollAreaWidget::drawMeasures(NVGcontext *ctx) {
 
   for (int i = 0; i < numberOfMeasures; i++) {
     bool drawingCurrentMeasure = i == state->currentMeasure;
-    nvgBeginPath(ctx);
-    nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 0.1f));
-    nvgStrokeWidth(ctx, 1.f);
-    nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, drawingCurrentMeasure ? 1.f : 0.25f));
-    nvgRect(ctx, roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - boxHeight, widthPerMeasure, boxHeight);
-    nvgStroke(ctx);
-    nvgFill(ctx);
+    nvgBeginPath(args.vg);
+    nvgStrokeColor(args.vg, nvgRGBAf(0.f, 0.f, 0.f, 0.1f));
+    nvgStrokeWidth(args.vg, 1.f);
+    nvgFillColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, drawingCurrentMeasure ? 1.f : 0.25f));
+    nvgRect(args.vg, roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - boxHeight, widthPerMeasure, boxHeight);
+    nvgStroke(args.vg);
+    nvgFill(args.vg);
 
     if (drawingCurrentMeasure && state->measureLockPressTime > 0.5f) {
       float barHeight = boxHeight * rescale(clamp(state->measureLockPressTime, 0.f, 1.f), 0.5f, 1.f, 0.f, 1.f);
-      nvgBeginPath(ctx);
-      nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.f));
-      nvgStrokeWidth(ctx, 0.f);
-      nvgFillColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
-      nvgRect(ctx, roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - barHeight, widthPerMeasure, barHeight);
-      nvgStroke(ctx);
-      nvgFill(ctx);
+      nvgBeginPath(args.vg);
+      nvgStrokeColor(args.vg, nvgRGBAf(0.f, 0.f, 0.f, 1.f));
+      nvgStrokeWidth(args.vg, 0.f);
+      nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
+      nvgRect(args.vg, roll.pos.x + i * widthPerMeasure, roll.pos.y + roll.size.y - barHeight, widthPerMeasure, barHeight);
+      nvgStroke(args.vg);
+      nvgFill(args.vg);
     }
   }
 
   if (transport->isLocked()) {
-    nvgBeginPath(ctx);
-    nvgStrokeColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
-    nvgStrokeWidth(ctx, 2.f);
-    nvgRect(ctx, roll.pos.x, roll.pos.y + roll.size.y - boxHeight, roll.size.x, boxHeight);
-    nvgStroke(ctx);
+    nvgBeginPath(args.vg);
+    nvgStrokeColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.f));
+    nvgStrokeWidth(args.vg, 2.f);
+    nvgRect(args.vg, roll.pos.x, roll.pos.y + roll.size.y - boxHeight, roll.size.x, boxHeight);
+    nvgStroke(args.vg);
   }
 }
 
-void UnderlyingRollAreaWidget::drawPlayPosition(NVGcontext *ctx) {
+void UnderlyingRollAreaWidget::drawPlayPosition(const DrawArgs &args) {
   Rect roll = Rect(Vec(0,0), Vec(box.size.x, box.size.y));
   reserveKeysArea(roll);
 
@@ -476,31 +476,31 @@ void UnderlyingRollAreaWidget::drawPlayPosition(NVGcontext *ctx) {
   if (playingMeasure == state->currentMeasure) {
 
     float divisionWidth = roll.size.x / divisionsPerMeasure;
-    nvgBeginPath(ctx);
-    nvgStrokeColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 0.5f));
-    nvgStrokeWidth(ctx, 0.5f);
-    nvgFillColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 0.2f));
-    nvgRect(ctx, roll.pos.x + (noteInMeasure * divisionWidth), roll.pos.y, divisionWidth, roll.size.y - topMargins);
-    nvgStroke(ctx);
-    nvgFill(ctx);
+    nvgBeginPath(args.vg);
+    nvgStrokeColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, 0.5f));
+    nvgStrokeWidth(args.vg, 0.5f);
+    nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, 0.2f));
+    nvgRect(args.vg, roll.pos.x + (noteInMeasure * divisionWidth), roll.pos.y, divisionWidth, roll.size.y - topMargins);
+    nvgStroke(args.vg);
+    nvgFill(args.vg);
   }
 
   float widthPerMeasure = roll.size.x / numberOfMeasures;
   float stepWidthInMeasure = widthPerMeasure / divisionsPerMeasure;	
-  nvgBeginPath(ctx);
-  nvgStrokeColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
-  nvgStrokeWidth(ctx, 1.f);
-  nvgFillColor(ctx, nvgRGBAf(1.f, 1.f, 1.f, 0.2f));
-  nvgRect(ctx, roll.pos.x + (playingMeasure * widthPerMeasure) + (noteInMeasure * stepWidthInMeasure), roll.pos.y + roll.size.y - topMargins + 2, stepWidthInMeasure, topMargins - 2);
-  nvgStroke(ctx);
-  nvgFill(ctx);
+  nvgBeginPath(args.vg);
+  nvgStrokeColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, 1.f));
+  nvgStrokeWidth(args.vg, 1.f);
+  nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, 0.2f));
+  nvgRect(args.vg, roll.pos.x + (playingMeasure * widthPerMeasure) + (noteInMeasure * stepWidthInMeasure), roll.pos.y + roll.size.y - topMargins + 2, stepWidthInMeasure, topMargins - 2);
+  nvgStroke(args.vg);
+  nvgFill(args.vg);
 }
 
-void UnderlyingRollAreaWidget::drawVelocityInfo(NVGcontext *ctx) {
+void UnderlyingRollAreaWidget::drawVelocityInfo(const DrawArgs &args) {
   char buffer[100];
 
   if (state->displayVelocityHigh > -1 || state->displayVelocityLow > -1) {
-    float displayVelocity = max(state->displayVelocityHigh, state->displayVelocityLow);
+    float displayVelocity = std::max(state->displayVelocityHigh, state->displayVelocityLow);
 
     Rect roll = Rect(Vec(0,0), Vec(box.size.x, box.size.y));
     reserveKeysArea(roll);
@@ -512,35 +512,35 @@ void UnderlyingRollAreaWidget::drawVelocityInfo(NVGcontext *ctx) {
       posy = roll.pos.y + ((roll.size.y * 0.25) * 3);				
     }
 
-    nvgBeginPath(ctx);
+    nvgBeginPath(args.vg);
     snprintf(buffer, 100, "Velocity: %06.3fV (Midi %03d)", displayVelocity * 10.f, (int)(127 * displayVelocity));
 
-    nvgFontSize(ctx, roll.size.y / 12.f);
+    nvgFontSize(args.vg, roll.size.y / 12.f);
     float *bounds = new float[4];
-    nvgTextBounds(ctx, roll.pos.x, posy, buffer, NULL, bounds);
+    nvgTextBounds(args.vg, roll.pos.x, posy, buffer, NULL, bounds);
 
-    nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
-    nvgStrokeWidth(ctx, 5.f);
-    nvgFillColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
-    nvgRect(ctx, roll.pos.x + (roll.size.x / 2.f) - ((bounds[2] - bounds[0]) / 2.f), bounds[1], bounds[2]-bounds[0], bounds[3]-bounds[1]);
-    nvgStroke(ctx);
-    nvgFill(ctx);
+    nvgStrokeColor(args.vg, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
+    nvgStrokeWidth(args.vg, 5.f);
+    nvgFillColor(args.vg, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
+    nvgRect(args.vg, roll.pos.x + (roll.size.x / 2.f) - ((bounds[2] - bounds[0]) / 2.f), bounds[1], bounds[2]-bounds[0], bounds[3]-bounds[1]);
+    nvgStroke(args.vg);
+    nvgFill(args.vg);
 
-    nvgBeginPath(ctx);
-    nvgStrokeColor(ctx, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
-    nvgFillColor(ctx, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0f));
-    nvgTextAlign(ctx, NVG_ALIGN_LEFT + NVG_ALIGN_MIDDLE);
-    nvgText(ctx, roll.pos.x + (roll.size.x / 2.f) - ((bounds[2] - bounds[0]) / 2.f), posy, buffer, NULL);
+    nvgBeginPath(args.vg);
+    nvgStrokeColor(args.vg, nvgRGBAf(0.f, 0.f, 0.f, 1.0f));
+    nvgFillColor(args.vg, nvgRGBAf(1.f, 0.9f, 0.3f, 1.0f));
+    nvgTextAlign(args.vg, NVG_ALIGN_LEFT + NVG_ALIGN_MIDDLE);
+    nvgText(args.vg, roll.pos.x + (roll.size.x / 2.f) - ((bounds[2] - bounds[0]) / 2.f), posy, buffer, NULL);
 
     delete bounds;
 
-    nvgStroke(ctx);
-    nvgFill(ctx);
+    nvgStroke(args.vg);
+    nvgFill(args.vg);
   }
 }
 
-void UnderlyingRollAreaWidget::draw(NVGcontext* ctx) {
-  Widget::draw(ctx);
+void UnderlyingRollAreaWidget::draw(const DrawArgs &args) {
+  Widget::draw(args);
 
   Rect roll = Rect(Vec(0,0), Vec(box.size.x, box.size.y));
 
@@ -552,12 +552,12 @@ void UnderlyingRollAreaWidget::draw(NVGcontext* ctx) {
 
   Rect keysArea = reserveKeysArea(roll);
   auto keys = getKeys(keysArea);
-  drawKeys(ctx, keys);
-  drawSwimLanes(ctx, roll, keys);
+  drawKeys(args, keys);
+  drawSwimLanes(args, roll, keys);
   auto beatDivs = getBeatDivs(roll);
-  drawBeats(ctx, beatDivs);
-  drawNotes(ctx, keys, beatDivs);
-  drawMeasures(ctx);
-  drawPlayPosition(ctx);
-  drawVelocityInfo(ctx);
+  drawBeats(args, beatDivs);
+  drawNotes(args, keys, beatDivs);
+  drawMeasures(args);
+  drawPlayPosition(args);
+  drawVelocityInfo(args);
 }	

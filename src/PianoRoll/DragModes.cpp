@@ -38,7 +38,7 @@ void PlayPositionDragging::setNote(Vec mouseRel) {
   BeatDiv cellBeatDiv;
 
   for (auto const& beatDiv: beatDivs) {
-    if (Rect(Vec(beatDiv.pos.x, 0), Vec(beatDiv.size.x, widget->box.size.y)).contains(pos)) {
+    if (Rect(Vec(beatDiv.pos.x, 0), Vec(beatDiv.size.x, widget->box.size.y)).isContaining(pos)) {
       cellBeatDiv = beatDiv;
       beatDivFound = true;
       break;
@@ -212,7 +212,7 @@ VelocityDragging::VelocityDragging(UnderlyingRollAreaWidget* widget, PatternData
 	widget->reserveKeysArea(roll);
 
 	roll.size.y = roll.size.y / 2.f;
-	showLow = roll.contains(widget->lastMouseDown);
+	showLow = roll.isContaining(widget->lastMouseDown);
 
 	APP->history->push(new PatternData::PatternAction("change velocity", patternData->moduleId, transport->currentPattern(), *patternData));
 }

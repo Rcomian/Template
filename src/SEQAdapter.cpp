@@ -77,9 +77,9 @@ struct SEQAdapterModule : BaseModule {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 	}
 	void step() override;
-  rack::SchmittTrigger runTrigger;
+  rack::dsp::SchmittTrigger runTrigger;
 	SchmittResetTrigger clkResetTrigger;
-  rack::SchmittTrigger resetTrigger;
+  rack::dsp::SchmittTrigger resetTrigger;
 
   bool running = false;
   bool redirectNextClk = false;
@@ -128,17 +128,18 @@ void SEQAdapterModule::step() {
 struct SEQAdapterModuleWidget : BaseWidget {
     TextField *textField;
 
-	SEQAdapterModuleWidget(SEQAdapterModule *module) : BaseWidget(module) {
+	SEQAdapterModuleWidget(SEQAdapterModule *module) {
+		setModule(module);
 		initColourChange(Rect(Vec(10, 10), Vec(100, 13)), module, 0.528f, 0.6f, 0.4f);
 
-		setPanel(SVG::load(assetPlugin(pluginInstance, "res/seqadapter.svg")));
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/seqadapter.svg")));
 
-		addInput(createPort<PJ301MPort>(Vec(12, 380-22.977-92), PortWidget::INPUT, module, SEQAdapterModule::RESET_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(48, 380-22.977-92), PortWidget::INPUT, module, SEQAdapterModule::RUN_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(83, 380-22.977-92), PortWidget::INPUT, module, SEQAdapterModule::CLK_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(12, 380-22.977-92), module, SEQAdapterModule::RESET_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(48, 380-22.977-92), module, SEQAdapterModule::RUN_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(83, 380-22.977-92), module, SEQAdapterModule::CLK_INPUT));
 
-		addOutput(createPort<PJ301MPort>(Vec(30.5, 380-22.977-20), PortWidget::OUTPUT, module, SEQAdapterModule::RESET_OUTPUT));
-		addOutput(createPort<PJ301MPort>(Vec(65.5, 380-22.977-20), PortWidget::OUTPUT, module, SEQAdapterModule::CLK_OUTPUT));
+		addOutput(createOutput<PJ301MPort>(Vec(30.5, 380-22.977-20), module, SEQAdapterModule::RESET_OUTPUT));
+		addOutput(createOutput<PJ301MPort>(Vec(65.5, 380-22.977-20), module, SEQAdapterModule::CLK_OUTPUT));
 
 		addChild(createLight<MediumLight<GreenLight>>(Vec(86, 70), module, SEQAdapterModule::RUN_LIGHT));
 		addChild(createLight<MediumLight<YellowLight>>(Vec(86, 85), module, SEQAdapterModule::ARMED_LIGHT));

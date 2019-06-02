@@ -1,4 +1,4 @@
-#include "rack0.hpp"
+#include "rack.hpp"
 #include "PianoRollModule.hpp"
 #include "../plugin.hpp"
 
@@ -11,7 +11,7 @@ PatternData::PatternAction::PatternAction(std::string name, int moduleId, int pa
   this->name = name;
   this->moduleId = moduleId;
 
-  if (patternData.patterns.size() < patternId) {
+  if ((int)patternData.patterns.size() < patternId) {
     patternData.patterns.resize(patternId);
   }
   patternData.copyPatternData(patternData.patterns[patternId], undoPatternData);
@@ -23,7 +23,7 @@ void PatternData::PatternAction::undo() {
   PianoRollModule *module = dynamic_cast<PianoRollModule*>(mw->module);
   assert(module);
 
-  if (module->patternData.patterns.size() < patternId) {
+  if ((int)module->patternData.patterns.size() < patternId) {
     module->patternData.patterns.resize(patternId);
   }
   module->patternData.copyPatternData(module->patternData.patterns[patternId], redoPatternData);
@@ -37,7 +37,7 @@ void PatternData::PatternAction::redo() {
   PianoRollModule *module = dynamic_cast<PianoRollModule*>(mw->module);
   assert(module);
 
-  if (module->patternData.patterns.size() < patternId) {
+  if ((int)module->patternData.patterns.size() < patternId) {
     module->patternData.patterns.resize(patternId);
   }
   module->patternData.copyPatternData(module->patternData.patterns[patternId], undoPatternData);
@@ -290,7 +290,6 @@ void PatternData::dataFromJson(json_t *patternsJ) {
 
             json_t *pitchJ = json_object_get(noteJ, "pitch");
             if (pitchJ) {
-              info("Loading Pitch: %d/%d, %d/%d, %d/%d", i, patterns.size(), j, patterns[i].measures.size() ,k, patterns[i].measures[j].steps.size());
               patterns[i].measures[j].steps[k].pitch = json_integer_value(pitchJ);
             }
 
@@ -320,7 +319,7 @@ void PatternData::reassignSteps(int pattern, int fromSteps, int toSteps) {
   pattern = clamp(pattern, 0, patterns.size()-1);
 
   float scale = (float)toSteps / (float)fromSteps;
-  int smear = rack::max(1, (int)floor(scale));
+  int smear = std::max(1, (int)floor(scale));
   for (auto& measure: patterns[pattern].measures) {
 
     std::vector<Step> scratch;
@@ -473,7 +472,7 @@ void PatternData::increaseStepVelocityTo(int pattern, int measure, int step, flo
   measure = clamp(measure, 0, patterns[pattern].measures.size()-1);
   step = clamp(step, 0, patterns[pattern].measures[measure].steps.size()-1);
 
-  patterns[pattern].measures[measure].steps[step].velocity = max(patterns[pattern].measures[measure].steps[step].velocity, velocity);
+  patterns[pattern].measures[measure].steps[step].velocity = std::max(patterns[pattern].measures[measure].steps[step].velocity, velocity);
 }
 
 void PatternData::setStepVelocity(int pattern, int measure, int step, float velocity) {

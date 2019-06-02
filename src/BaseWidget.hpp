@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rack0.hpp"
+#include "rack.hpp"
 
 using namespace rack;
 
@@ -32,7 +32,8 @@ struct BaseModule : Module {
 struct BaseWidget : ModuleWidget {
 	ColourData colourData;
 
-  BaseWidget(Module *module);
+	BaseWidget();
+	DEPRECATED BaseWidget(engine::Module *module);
 
 	void initColourChange(Rect hotspot, BaseModule* baseModule, float hue, float saturation, float value); 
 

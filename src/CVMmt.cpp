@@ -31,21 +31,22 @@ void CVMmtModule::step() {
 
 struct PB61303White : SvgSwitch {
 	PB61303White() {
-		addFrame(SVG::load(assetPlugin(pluginInstance, "res/PB61303White.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/PB61303White.svg")));
 	}
 };
 
 struct CVMmtModuleWidget : BaseWidget {
 	TextField *textField;
 
-	CVMmtModuleWidget(CVMmtModule *module) : BaseWidget(module) {
-		setPanel(SVG::load(assetPlugin(pluginInstance, "res/CVMmt.svg")));
+	CVMmtModuleWidget(CVMmtModule *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CVMmt.svg")));
 
 		auto pbswitch = createParam<PB61303White>(Vec(10, 156.23), module, CVMmtModule::BUTTON_PARAM);
 		pbswitch->momentary = true;
 		addParam(pbswitch);
 
-		addOutput(createPort<PJ301MPort>(Vec(26, 331), PortWidget::OUTPUT, module, CVMmtModule::CV_OUTPUT));
+		addOutput(createOutput<PJ301MPort>(Vec(26, 331), module, CVMmtModule::CV_OUTPUT));
 
 		textField = createWidget<LedDisplayTextField>(Vec(7.5, 38.0));
 		textField->box.size = Vec(60.0, 80.0);

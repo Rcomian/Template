@@ -74,7 +74,7 @@ void PianoRollModule::onAdd() {
 	patternData.moduleId = this->id;
 }
 
-void PianoRollModule::step() {
+void PianoRollModule::process(const ProcessArgs &args) {
 	bool clockTick = false;
 
 	while((int)clockBuffer.size() <= clockDelay) {
@@ -266,13 +266,13 @@ void PianoRollModule::step() {
 		}
 	}
 
-	outputs[RETRIGGER_OUTPUT].value = retriggerOutputPulse.process(engineGetSampleTime()) ? 10.f : 0.f;
-	outputs[GATE_OUTPUT].value = gateOutputPulse.process(engineGetSampleTime()) ? 10.f : 0.f;
+	outputs[RETRIGGER_OUTPUT].value = retriggerOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
+	outputs[GATE_OUTPUT].value = gateOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
 	if (outputs[RETRIGGER_OUTPUT].active == false && outputs[RETRIGGER_OUTPUT].value > 0.f) {
 		// If we're not using the retrigger output, the gate output to 0 for the trigger duration instead
 		outputs[GATE_OUTPUT].value = 0.f;
 	}
-	outputs[END_OF_PATTERN_OUTPUT].value = eopOutputPulse.process(engineGetSampleTime()) ? 10.f : 0.f;
+	outputs[END_OF_PATTERN_OUTPUT].value = eopOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
 
 	if (inputs[GATE_INPUT].active && inputs[GATE_INPUT].value > 1.f) {
 		if (inputs[VOCT_INPUT].active) { outputs[VOCT_OUTPUT].value = inputs[VOCT_INPUT].value; }

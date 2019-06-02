@@ -85,9 +85,9 @@ namespace SongRoll {
     Rect minus(Vec(0,44), Vec(box.size.x,20));
     Rect plus(Vec(0,10), Vec(box.size.x,20));
 
-    if (minus.contains(e.pos)) {
+    if (minus.isContaining(e.pos)) {
       clock_div = clamp(clock_div - 1, 0, 64);
-    } else if (plus.contains(e.pos)) {
+    } else if (plus.isContaining(e.pos)) {
       clock_div = clamp(clock_div + 1, 0, 64);
     }
   }

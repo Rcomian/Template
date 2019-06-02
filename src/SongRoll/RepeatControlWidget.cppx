@@ -70,11 +70,11 @@ namespace SongRoll {
     Rect plus(Vec(box.size.x*0.60,10), Vec(box.size.x*0.40,14));
     Rect mode(Vec(0, 26), Vec(box.size.x, 26));
 
-    if (minus.contains(e.pos)) {
+    if (minus.isContaining(e.pos)) {
       repeats = clamp(repeats - 1, 1, 64);
-    } else if (plus.contains(e.pos)) {
+    } else if (plus.isContaining(e.pos)) {
       repeats = clamp(repeats + 1, 1, 64);
-    } else if (mode.contains(e.pos)) {
+    } else if (mode.isContaining(e.pos)) {
       repeat_mode = (repeat_mode + 1) % 3;
     }
   }

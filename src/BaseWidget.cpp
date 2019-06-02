@@ -1,7 +1,12 @@
 #include "BaseWidget.hpp"
 #include "window.hpp"
 
-BaseWidget::BaseWidget(Module* module) : ModuleWidget(module) {
+BaseWidget::BaseWidget() : ModuleWidget() {
+  box.size.y = RACK_GRID_HEIGHT;
+}
+
+BaseWidget::BaseWidget(Module* module) : ModuleWidget() {
+  setModule(module);
   box.size.y = RACK_GRID_HEIGHT;
 }
 

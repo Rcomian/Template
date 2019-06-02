@@ -33,20 +33,21 @@ void CVTglModule::step() {
 
 struct CKSSWhite : SvgSwitch {
 	CKSSWhite() {
-		addFrame(SVG::load(assetPlugin(pluginInstance, "res/CKSS_0_White.svg")));
-		addFrame(SVG::load(assetPlugin(pluginInstance, "res/CKSS_1_White.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CKSS_0_White.svg")));
+		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CKSS_1_White.svg")));
 	}
 };
 
 struct CVTglModuleWidget : BaseWidget {
 	LedDisplayTextField *textField;
 
-	CVTglModuleWidget(CVTglModule *module) : BaseWidget(module) {
-		setPanel(SVG::load(assetPlugin(pluginInstance, "res/CVTgl.svg")));
+	CVTglModuleWidget(CVTglModule *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CVTgl.svg")));
 
 		addParam(createParam<CKSSWhite>(Vec(31, 172), module, CVTglModule::BUTTON_PARAM));
 
-		addOutput(createPort<PJ301MPort>(Vec(26, 331), PortWidget::OUTPUT, module, CVTglModule::CV_OUTPUT));
+		addOutput(createOutput<PJ301MPort>(Vec(26, 331), module, CVTglModule::CV_OUTPUT));
 
 		textField = createWidget<LedDisplayTextField>(Vec(7.5, 38.0));
 		textField->box.size = Vec(60.0, 80.0);

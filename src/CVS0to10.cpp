@@ -48,8 +48,9 @@ void CVS0to10Module::step() {
 struct CVS0to10ModuleWidget : BaseWidget {
     TextField *textField;
 
-	CVS0to10ModuleWidget(CVS0to10Module *module) : BaseWidget(module) {
-		setPanel(SVG::load(assetPlugin(pluginInstance, "res/CVS0to10.svg")));
+	CVS0to10ModuleWidget(CVS0to10Module *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CVS0to10.svg")));
 
 		auto x = 6.f;
 		addParam(createParam<LEDSliderWhite>(Vec(11.5-x, 135), module, CVS0to10Module::AMOUNT_PARAM_A));
@@ -57,15 +58,15 @@ struct CVS0to10ModuleWidget : BaseWidget {
 		addParam(createParam<LEDSliderWhite>(Vec(40.5-x, 135), module, CVS0to10Module::AMOUNT_PARAM_C));
 		addParam(createParam<LEDSliderWhite>(Vec(55.0-x, 135), module, CVS0to10Module::AMOUNT_PARAM_D));
 
-		addOutput(createPort<PJ301MPort>(Vec(12.5, 278), PortWidget::OUTPUT, module, CVS0to10Module::CV_OUTPUT_A));
-		addOutput(createPort<PJ301MPort>(Vec(42, 278), PortWidget::OUTPUT, module, CVS0to10Module::CV_OUTPUT_B));
-		addOutput(createPort<PJ301MPort>(Vec(12.5, 317), PortWidget::OUTPUT, module, CVS0to10Module::CV_OUTPUT_C));
-		addOutput(createPort<PJ301MPort>(Vec(42, 317), PortWidget::OUTPUT, module, CVS0to10Module::CV_OUTPUT_D));
+		addOutput(createOutput<PJ301MPort>(Vec(12.5, 278), module, CVS0to10Module::CV_OUTPUT_A));
+		addOutput(createOutput<PJ301MPort>(Vec(42, 278), module, CVS0to10Module::CV_OUTPUT_B));
+		addOutput(createOutput<PJ301MPort>(Vec(12.5, 317), module, CVS0to10Module::CV_OUTPUT_C));
+		addOutput(createOutput<PJ301MPort>(Vec(42, 317), module, CVS0to10Module::CV_OUTPUT_D));
 
 		textField = createWidget<LedDisplayTextField>(Vec(7.5, 38.0));
 		textField->box.size = Vec(60.0, 80.0);
 		textField->multiline = true;
-		((LedDisplayTextField*)textField)->color = COLOR_WHITE;
+		((LedDisplayTextField*)textField)->color = componentlibrary::SCHEME_WHITE;
 		addChild(textField);
 
 

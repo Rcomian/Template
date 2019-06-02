@@ -23,7 +23,6 @@ struct ChangePatternAction : history::ModuleAction {
 		assert(module);
 
 		int currentPattern = module->transport.currentPattern();
-		int currentMeasure = module->transport.currentMeasure();
 		if (currentPattern == expectedUndoPattern) {
 			module->transport.setPattern(undoPattern);
 			redoPattern = currentPattern;
@@ -41,7 +40,6 @@ struct ChangePatternAction : history::ModuleAction {
 		assert(module);
 
 		int currentPattern = module->transport.currentPattern();
-		int currentMeasure = module->transport.currentMeasure();
 		if (currentPattern == expectedUndoPattern) {
 			module->transport.setPattern(redoPattern);
 			undoPattern = currentPattern;
@@ -58,7 +56,6 @@ struct PatternItem : MenuItem {
 	int pattern;
 	void onAction(const event::Action &e) override {
 		int previousPattern = widget->module->transport.currentPattern();
-		int previousMeasure = widget->module->transport.currentMeasure();
 		widget->module->transport.setPattern(pattern);
 		APP->history->push(new ChangePatternAction(stringf("change pattern"), widget->module->patternData.moduleId, previousPattern, widget->module->transport.currentPattern()));
 	}
@@ -73,12 +70,10 @@ struct PatternChoice : LedDisplayChoice {
 			
 			if (pos.x < 20) {
 				int previousPattern = widget->module->transport.currentPattern();
-				int previousMeasure = widget->module->transport.currentMeasure();
 				widget->module->transport.advancePattern(-1);
 				APP->history->push(new ChangePatternAction(stringf("change pattern"), widget->module->patternData.moduleId, previousPattern, widget->module->transport.currentPattern()));
 			} else if (pos.x > 67) {
 				int previousPattern = widget->module->transport.currentPattern();
-				int previousMeasure = widget->module->transport.currentMeasure();
 				widget->module->transport.advancePattern(1);
 				APP->history->push(new ChangePatternAction(stringf("change pattern"), widget->module->patternData.moduleId, previousPattern, widget->module->transport.currentPattern()));
 			} else {

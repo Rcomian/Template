@@ -10,7 +10,7 @@ struct Follower {
 	float level = 0.f;
 
 	void step(float* left, float* right) {
-		auto value = max(abs(*left), abs(*right));
+		auto value = std::max(abs(*left), abs(*right));
 
 		if (value >= level) {
 			level = value;
@@ -97,7 +97,7 @@ struct GVerbModule : BaseModule {
 		configParam(MIX_POT_PARAM, -1.f, 1.f, 0.f);
 		configParam(SPREAD_POT_PARAM, -1.f, 1.f, 0.f);
 	}
-	void step() override;
+	void process(const ProcessArgs &args) override;
 	void disposeGverbL();
 	void disposeGverbR();
 
@@ -136,7 +136,7 @@ void GVerbModule::disposeGverbR() {
 }
 
 float GVerbModule::getParam(ParamIds param, InputIds mod, ParamIds trim, float min, float max) {
-	return clamp2(params[param].value + (((clamp2(inputs[mod].value, -10.f, 10.f)/10) * max) * params[trim].value), min, max);
+	return clampSafe(params[param].value + (((clampSafe(inputs[mod].value, -10.f, 10.f)/10) * max) * params[trim].value), min, max);
 }
 
 void GVerbModule::handleParam(float value, float* store, void (*change)(ty_gverb*,float)) {
@@ -151,11 +151,11 @@ void GVerbModule::handleParam(float value, float* store, void (*change)(ty_gverb
 	}
 }
 
-void GVerbModule::step() {
-	auto reset = max(params[RESET_PARAM].value, inputs[RESET_INPUT].value);
+void GVerbModule::process(const rack::Module::ProcessArgs &args) {
+	auto reset = std::max(params[RESET_PARAM].value, inputs[RESET_INPUT].value);
 	auto mix = getParam(MIX_PARAM, MIX_INPUT, MIX_POT_PARAM, 0.f, 1.f);
 
-	if (p_frequency != engineGetSampleRate()) { disposeGverbL(); disposeGverbR(); }
+	if (p_frequency != args.sampleRate) { disposeGverbL(); disposeGverbR(); }
 	if (p_reset == 0.f && reset > 0.f) {
 		disposeGverbL();
 		disposeGverbR();
@@ -175,7 +175,7 @@ void GVerbModule::step() {
 
 		if (inputs[LEFT_AUDIO].active) {
 			gverbL = gverb_new(
-				engineGetSampleRate(), // freq
+				args.sampleRate, // freq
 				300,    // max room size
 				params[ROOM_SIZE_PARAM].value,    // room size
 				params[REV_TIME_PARAM].value,     // revtime
@@ -186,7 +186,7 @@ void GVerbModule::step() {
 				params[TAIL_LEVEL_PARAM].value    // tail level
 			);
 
-			p_frequency = engineGetSampleRate();
+			p_frequency = args.sampleRate;
 		}
 	}
 
@@ -194,7 +194,7 @@ void GVerbModule::step() {
 
 		if (inputs[RIGHT_AUDIO].active) {
 			gverbR = gverb_new(
-				engineGetSampleRate(), // freq
+				args.sampleRate, // freq
 				300,    // max room size
 				params[ROOM_SIZE_PARAM].value,    // room size
 				params[REV_TIME_PARAM].value,     // revtime
@@ -205,7 +205,7 @@ void GVerbModule::step() {
 				params[TAIL_LEVEL_PARAM].value    // tail level
 			);
 
-			p_frequency = engineGetSampleRate();
+			p_frequency = args.sampleRate;
 		}
 	}
 
@@ -257,8 +257,9 @@ void GVerbModule::step() {
 }
 
 struct GVerbModuleWidget : BaseWidget {
-	GVerbModuleWidget(GVerbModule *module) : BaseWidget(module) {
-		setPanel(SVG::load(assetPlugin(pluginInstance, "res/Reverb.svg")));
+	GVerbModuleWidget(GVerbModule *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Reverb.svg")));
 
 		addParam(createParam<Davies1900hLargeWhiteKnob>(Vec(50, 44), module, GVerbModule::ROOM_SIZE_PARAM));
 		addParam(createParam<Davies1900hLargeWhiteKnob>(Vec(50, 115), module, GVerbModule::DAMPING_PARAM));
@@ -281,21 +282,21 @@ struct GVerbModuleWidget : BaseWidget {
 		addParam(createParam<Trimpot>(Vec(178, 263), module, GVerbModule::MIX_POT_PARAM));
 		addParam(createParam<Trimpot>(Vec(205, 263), module, GVerbModule::SPREAD_POT_PARAM));
 
-		addInput(createPort<PJ301MPort>(Vec(14, 286), PortWidget::INPUT, module, GVerbModule::ROOM_SIZE_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(41, 286), PortWidget::INPUT, module, GVerbModule::DAMPING_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(68, 286), PortWidget::INPUT, module, GVerbModule::REV_TIME_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(95, 286), PortWidget::INPUT, module, GVerbModule::BANDWIDTH_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(123, 286), PortWidget::INPUT, module, GVerbModule::EARLY_LEVEL_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(150, 286), PortWidget::INPUT, module, GVerbModule::TAIL_LEVEL_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(177, 286), PortWidget::INPUT, module, GVerbModule::MIX_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(204, 286), PortWidget::INPUT, module, GVerbModule::SPREAD_INPUT));
-		addInput(createPort<PJ301MPort>(Vec(232, 286), PortWidget::INPUT, module, GVerbModule::RESET_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(14, 286), module, GVerbModule::ROOM_SIZE_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(41, 286), module, GVerbModule::DAMPING_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(68, 286), module, GVerbModule::REV_TIME_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(95, 286), module, GVerbModule::BANDWIDTH_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(123, 286), module, GVerbModule::EARLY_LEVEL_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(150, 286), module, GVerbModule::TAIL_LEVEL_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(177, 286), module, GVerbModule::MIX_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(204, 286), module, GVerbModule::SPREAD_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(232, 286), module, GVerbModule::RESET_INPUT));
 
-		addInput(createPort<PJ301MPort>(Vec(14, 332), PortWidget::INPUT, module, GVerbModule::LEFT_AUDIO));
-		addInput(createPort<PJ301MPort>(Vec(41, 332), PortWidget::INPUT, module, GVerbModule::RIGHT_AUDIO));
+		addInput(createInput<PJ301MPort>(Vec(14, 332), module, GVerbModule::LEFT_AUDIO));
+		addInput(createInput<PJ301MPort>(Vec(41, 332), module, GVerbModule::RIGHT_AUDIO));
 
-		addOutput(createPort<PJ301MPort>(Vec(204, 332), PortWidget::OUTPUT, module, GVerbModule::LEFT_OUTPUT));
-		addOutput(createPort<PJ301MPort>(Vec(232, 332), PortWidget::OUTPUT, module, GVerbModule::RIGHT_OUTPUT));
+		addOutput(createOutput<PJ301MPort>(Vec(204, 332), module, GVerbModule::LEFT_OUTPUT));
+		addOutput(createOutput<PJ301MPort>(Vec(232, 332), module, GVerbModule::RIGHT_OUTPUT));
 
 		initColourChange(Rect(Vec(111.572, 10), Vec(46.856, 13)), module, 0.06667f, 1.f, 0.58f);
 	}

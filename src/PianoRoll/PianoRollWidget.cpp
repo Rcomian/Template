@@ -1,4 +1,4 @@
-#include "rack0.hpp"
+#include "rack.hpp"
 #include "window.hpp"
 
 #include "../plugin.hpp"
@@ -21,32 +21,33 @@ extern Plugin* plugin;
 // standalone module for the module browser
 PianoRollModule browserModule;
 
-PianoRollWidget::PianoRollWidget(PianoRollModule *module) : BaseWidget(module) {
+PianoRollWidget::PianoRollWidget(PianoRollModule *module) {
+  setModule(module);
   module = this->module = module == NULL ? &browserModule : module;
-  setPanel(SVG::load(assetPlugin(pluginInstance, "res/PianoRoll.svg")));
+  setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/PianoRoll.svg")));
 
-  addInput(createPort<PJ301MPort>(Vec(50.114, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::CLOCK_INPUT));
-  addInput(createPort<PJ301MPort>(Vec(85.642, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::RESET_INPUT));
-  addInput(createPort<PJ301MPort>(Vec(121.170, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::PATTERN_INPUT));
-  addInput(createPort<PJ301MPort>(Vec(156.697, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::RUN_INPUT));
-  addInput(createPort<PJ301MPort>(Vec(192.224, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::RECORD_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(50.114, 380.f-91-23.6), module, PianoRollModule::CLOCK_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(85.642, 380.f-91-23.6), module, PianoRollModule::RESET_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(121.170, 380.f-91-23.6), module, PianoRollModule::PATTERN_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(156.697, 380.f-91-23.6), module, PianoRollModule::RUN_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(192.224, 380.f-91-23.6), module, PianoRollModule::RECORD_INPUT));
 
-  addInput(createPort<PJ301MPort>(Vec(421.394, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::VOCT_INPUT));
-  addInput(createPort<PJ301MPort>(Vec(456.921, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::GATE_INPUT));
-  addInput(createPort<PJ301MPort>(Vec(492.448, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::RETRIGGER_INPUT));
-  addInput(createPort<PJ301MPort>(Vec(527.976, 380.f-91-23.6), PortWidget::INPUT, module, PianoRollModule::VELOCITY_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(421.394, 380.f-91-23.6), module, PianoRollModule::VOCT_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(456.921, 380.f-91-23.6), module, PianoRollModule::GATE_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(492.448, 380.f-91-23.6), module, PianoRollModule::RETRIGGER_INPUT));
+  addInput(createInput<PJ301MPort>(Vec(527.976, 380.f-91-23.6), module, PianoRollModule::VELOCITY_INPUT));
 
-  addOutput(createPort<PJ301MPort>(Vec(50.114, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::CLOCK_OUTPUT));
-  addOutput(createPort<PJ301MPort>(Vec(85.642, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::RESET_OUTPUT));
-  addOutput(createPort<PJ301MPort>(Vec(121.170, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::PATTERN_OUTPUT));
-  addOutput(createPort<PJ301MPort>(Vec(156.697, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::RUN_OUTPUT));
-  addOutput(createPort<PJ301MPort>(Vec(192.224, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::RECORD_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(50.114, 380.f-25.9-23.6), module, PianoRollModule::CLOCK_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(85.642, 380.f-25.9-23.6), module, PianoRollModule::RESET_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(121.170, 380.f-25.9-23.6), module, PianoRollModule::PATTERN_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(156.697, 380.f-25.9-23.6), module, PianoRollModule::RUN_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(192.224, 380.f-25.9-23.6), module, PianoRollModule::RECORD_OUTPUT));
 
-  addOutput(createPort<PJ301MPort>(Vec(421.394, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::VOCT_OUTPUT));
-  addOutput(createPort<PJ301MPort>(Vec(456.921, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::GATE_OUTPUT));
-  addOutput(createPort<PJ301MPort>(Vec(492.448, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::RETRIGGER_OUTPUT));
-  addOutput(createPort<PJ301MPort>(Vec(527.976, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::VELOCITY_OUTPUT));
-  addOutput(createPort<PJ301MPort>(Vec(563.503, 380.f-25.9-23.6), PortWidget::OUTPUT, module, PianoRollModule::END_OF_PATTERN_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(421.394, 380.f-25.9-23.6), module, PianoRollModule::VOCT_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(456.921, 380.f-25.9-23.6), module, PianoRollModule::GATE_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(492.448, 380.f-25.9-23.6), module, PianoRollModule::RETRIGGER_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(527.976, 380.f-25.9-23.6), module, PianoRollModule::VELOCITY_OUTPUT));
+  addOutput(createOutput<PJ301MPort>(Vec(563.503, 380.f-25.9-23.6), module, PianoRollModule::END_OF_PATTERN_OUTPUT));
 
   if (module != NULL) {
     rollAreaWidget = new RollAreaWidget(&module->patternData, &module->transport, &module->auditioner);

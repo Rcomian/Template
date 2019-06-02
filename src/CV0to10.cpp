@@ -19,6 +19,7 @@ struct CV0to10Module : BaseModule {
 
 	CV0to10Module() : BaseModule() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(CV0to10Module::AMOUNT_PARAM, 0.0, 10.0, 0.0);
 	}
 	void step() override;
 
@@ -35,17 +36,18 @@ void CV0to10Module::step() {
 struct CV0to10ModuleWidget : BaseWidget {
     TextField *textField;
 
-	CV0to10ModuleWidget(CV0to10Module *module) : BaseWidget(module) {
-		setPanel(SVG::load(assetPlugin(pluginInstance, "res/CV0to10.svg")));
+	CV0to10ModuleWidget(CV0to10Module *module) {
+		setModule(module);
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/CV0to10.svg")));
 
-		addParam(createParam<Davies1900hLargeWhiteKnob>(Vec(10, 156.23), module, CV0to10Module::AMOUNT_PARAM, 0.0, 10.0, 0.0));
+		addParam(createParam<Davies1900hLargeWhiteKnob>(Vec(10, 156.23), module, CV0to10Module::AMOUNT_PARAM));
 
-		addOutput(createPort<PJ301MPort>(Vec(26, 331), PortWidget::OUTPUT, module, CV0to10Module::CV_OUTPUT));
+		addOutput(createOutput<PJ301MPort>(Vec(26, 331), module, CV0to10Module::CV_OUTPUT));
 
 		textField = createWidget<LedDisplayTextField>(Vec(7.5, 38.0));
 		textField->box.size = Vec(60.0, 80.0);
 		textField->multiline = true;
-		((LedDisplayTextField*)textField)->color = COLOR_WHITE;
+		((LedDisplayTextField*)textField)->color = componentlibrary::SCHEME_WHITE;
 		addChild(textField);
 
 		initColourChange(Rect(Vec(10, 10), Vec(50, 13)), module, 0.754f, 1.f, 0.58f);
