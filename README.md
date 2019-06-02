@@ -105,7 +105,7 @@ The output is normalised using an internal envelope following, because the outpu
 
 ## Interface 16
 
-Steve Baker's version of the Audio module that supports audio devices with up to 16 inputs and outputs.
+A reskinned version of the Core Audio 16 interface. Included solely for backward compatibility with pre v1.0 patches.
 
 ## Duck
 
