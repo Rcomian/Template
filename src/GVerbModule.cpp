@@ -159,6 +159,9 @@ void GVerbModule::onSampleRateChange() {
 }
 
 void GVerbModule::process(const rack::Module::ProcessArgs &args) {
+	auto leftAudioIn = inputs[LEFT_AUDIO].getVoltageSum();
+	auto rightAudioIn = inputs[RIGHT_AUDIO].getVoltageSum();
+
 	auto reset = std::max(params[RESET_PARAM].value, inputs[RESET_INPUT].getVoltage());
 	auto mix = getParam(MIX_PARAM, MIX_INPUT, MIX_POT_PARAM, 0.f, 1.f);
 
@@ -226,7 +229,7 @@ void GVerbModule::process(const rack::Module::ProcessArgs &args) {
 		auto R_L = 0.f, R_R = 0.f;
 
 		if (gverbL != NULL) {
-			gverb_do(gverbL, inputs[LEFT_AUDIO].getVoltageSum() / 10.f, &L_L, &L_R);
+			gverb_do(gverbL, leftAudioIn / 10.f, &L_L, &L_R);
 
 			L_L = isfinite(L_L) ? L_L * 10.f : 0.f;
 			L_R = isfinite(L_R) ? L_R * 10.f : 0.f;
@@ -236,7 +239,7 @@ void GVerbModule::process(const rack::Module::ProcessArgs &args) {
 		auto L_R_S = (L_R + ((1-spread) * L_L)) / (2-spread);
 
 		if (gverbR != NULL) {
-			gverb_do(gverbR, inputs[RIGHT_AUDIO].getVoltageSum() / 10.f, &R_L, &R_R);
+			gverb_do(gverbR, rightAudioIn / 10.f, &R_L, &R_R);
 
 			R_L = isfinite(R_L) ? R_L * 10.f : 0.f;
 			R_R = isfinite(R_R) ? R_R * 10.f : 0.f;
@@ -252,14 +255,14 @@ void GVerbModule::process(const rack::Module::ProcessArgs &args) {
 
 		outputs[LEFT_OUTPUT].setVoltage(
 			crossfade(
-				inputs[LEFT_AUDIO].getChannels() > 0 ? inputs[LEFT_AUDIO].getVoltageSum() : inputs[RIGHT_AUDIO].getVoltageSum(),
+				inputs[LEFT_AUDIO].getChannels() > 0 ? leftAudioIn : rightAudioIn,
 				outputLeft,
 				mix)
 		);
 
 		outputs[RIGHT_OUTPUT].setVoltage(
 			crossfade(
-				inputs[RIGHT_AUDIO].getChannels() > 0 ? inputs[RIGHT_AUDIO].getVoltageSum() : inputs[LEFT_AUDIO].getVoltageSum(),
+				inputs[RIGHT_AUDIO].getChannels() > 0 ? rightAudioIn : leftAudioIn,
 				outputRight,
 				mix)
 		);
