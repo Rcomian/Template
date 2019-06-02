@@ -65,7 +65,7 @@ struct PatternChoice : LedDisplayChoice {
 	PatternWidget *widget = NULL;
 
 	void onAction(const event::Action &e) override {
-		if (widget->module->inputs[PianoRollModule::PATTERN_INPUT].active == false) {
+		if (widget->module->inputs[PianoRollModule::PATTERN_INPUT].getChannels() == 0) {
 			Vec pos = APP->scene->rack->mousePos.minus(widget->widget->box.pos).minus(widget->box.pos);
 			
 			if (pos.x < 20) {

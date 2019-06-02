@@ -96,7 +96,7 @@ void PianoRollModule::process(const ProcessArgs &args) {
 		}
 	}
 
-	if (inputs[PATTERN_INPUT].active) {
+	if (inputs[PATTERN_INPUT].getChannels() > 0) {
 		int nextPattern = clamp(quantizePitch(inputs[PATTERN_INPUT].value)  - 48, 0, 63);
     transport.setPattern(nextPattern);
 	}
@@ -121,7 +121,7 @@ void PianoRollModule::process(const ProcessArgs &args) {
     transport.advanceStep();
 	}
 
-	runInputActive.process(inputs[RUN_INPUT].active);
+	runInputActive.process(inputs[RUN_INPUT].getChannels() > 0);
 
 	if (runInputActive.changed && transport.isRunning()) {
 		if (runInputActive.value == true) {
@@ -166,12 +166,12 @@ void PianoRollModule::process(const ProcessArgs &args) {
 		int measure = transport.currentMeasure();
 		int stepInMeasure = transport.currentStepInMeasure();
 
-		if (inputs[VOCT_INPUT].active) {
+		if (inputs[VOCT_INPUT].getChannels() > 0) {
 			auto voctIn = voctInBuffer.shift();
 			patternData.setStepPitch(pattern, measure, stepInMeasure, quantizePitch(voctIn));
 		}
 
-		if (inputs[GATE_INPUT].active) {
+		if (inputs[GATE_INPUT].getChannels() > 0) {
 			auto gateIn = gateInBuffer.shift();
 
 			if (clockTick && gateIn < 0.1f) {
@@ -184,7 +184,7 @@ void PianoRollModule::process(const ProcessArgs &args) {
 			}
 		}
 
-		if (inputs[RETRIGGER_INPUT].active) {
+		if (inputs[RETRIGGER_INPUT].getChannels() > 0) {
 			auto retriggerIn = retriggerInBuffer.shift();
 
 			if (clockTick && retriggerIn < 0.1f) {
@@ -197,7 +197,7 @@ void PianoRollModule::process(const ProcessArgs &args) {
 			}
 		}
 
-		if (inputs[VELOCITY_INPUT].active) {
+		if (inputs[VELOCITY_INPUT].getChannels() > 0) {
 			auto velocityIn = velocityInBuffer.shift();
 
 			if (clockTick) {
@@ -268,23 +268,23 @@ void PianoRollModule::process(const ProcessArgs &args) {
 
 	outputs[RETRIGGER_OUTPUT].value = retriggerOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
 	outputs[GATE_OUTPUT].value = gateOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
-	if (outputs[RETRIGGER_OUTPUT].active == false && outputs[RETRIGGER_OUTPUT].value > 0.f) {
+	if (outputs[RETRIGGER_OUTPUT].getChannels() == 0 && outputs[RETRIGGER_OUTPUT].value > 0.f) {
 		// If we're not using the retrigger output, the gate output to 0 for the trigger duration instead
 		outputs[GATE_OUTPUT].value = 0.f;
 	}
 	outputs[END_OF_PATTERN_OUTPUT].value = eopOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
 
-	if (inputs[GATE_INPUT].active && inputs[GATE_INPUT].value > 1.f) {
-		if (inputs[VOCT_INPUT].active) { outputs[VOCT_OUTPUT].value = inputs[VOCT_INPUT].value; }
-		if (inputs[GATE_INPUT].active) { 
-			if (outputs[RETRIGGER_OUTPUT].active == false && inputs[RETRIGGER_INPUT].active) {
+	if (inputs[GATE_INPUT].getChannels() > 0 && inputs[GATE_INPUT].value > 1.f) {
+		if (inputs[VOCT_INPUT].getChannels() > 0) { outputs[VOCT_OUTPUT].value = inputs[VOCT_INPUT].value; }
+		if (inputs[GATE_INPUT].getChannels() > 0) { 
+			if (outputs[RETRIGGER_OUTPUT].getChannels() == 0 && inputs[RETRIGGER_INPUT].getChannels() > 0) {
 				outputs[GATE_OUTPUT].value = inputs[GATE_INPUT].value - inputs[RETRIGGER_INPUT].value;
 			} else {
 				outputs[GATE_OUTPUT].value = inputs[GATE_INPUT].value;
 			}
 		}
-		if (inputs[RETRIGGER_INPUT].active) { outputs[RETRIGGER_OUTPUT].value = inputs[RETRIGGER_INPUT].value; }
-		if (inputs[VELOCITY_INPUT].active) { outputs[VELOCITY_OUTPUT].value = inputs[VELOCITY_INPUT].value; }
+		if (inputs[RETRIGGER_INPUT].getChannels() > 0) { outputs[RETRIGGER_OUTPUT].value = inputs[RETRIGGER_INPUT].value; }
+		if (inputs[VELOCITY_INPUT].getChannels() > 0) { outputs[VELOCITY_OUTPUT].value = inputs[VELOCITY_INPUT].value; }
 	}
 
   // Send our chaining outputs
