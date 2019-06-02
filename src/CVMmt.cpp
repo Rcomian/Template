@@ -26,7 +26,8 @@ struct CVMmtModule : BaseModule {
 };
 
 void CVMmtModule::step() {
-	outputs[CV_OUTPUT].value = params[BUTTON_PARAM].value;
+	outputs[CV_OUTPUT].setChannels(1);
+	outputs[CV_OUTPUT].setVoltage(params[BUTTON_PARAM].value);
 }
 
 struct PB61303White : SvgSwitch {

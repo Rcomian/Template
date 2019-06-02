@@ -24,6 +24,7 @@ extern Model *modelPianoRollModule;
 extern Model *modelSongRollModule;
 extern Model *modelButtonTest;
 extern Model *modelSEQAdapterModule;
+extern Model *modelSyncModule;
 
 template<typename ... Args>
 std::string stringf( const std::string& format, Args ... args )

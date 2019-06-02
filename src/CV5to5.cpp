@@ -30,7 +30,8 @@ struct CV5to5Module : BaseModule {
 };
 
 void CV5to5Module::step() {
-	outputs[CV_OUTPUT].value = params[AMOUNT_PARAM].value;
+	outputs[CV_OUTPUT].setChannels(1);
+	outputs[CV_OUTPUT].setVoltage(params[AMOUNT_PARAM].value);
 }
 
 struct CV5to5ModuleWidget : BaseWidget {

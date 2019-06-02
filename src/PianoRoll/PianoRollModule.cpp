@@ -78,7 +78,7 @@ void PianoRollModule::process(const ProcessArgs &args) {
 	bool clockTick = false;
 
 	while((int)clockBuffer.size() <= clockDelay) {
-		clockBuffer.push(inputs[CLOCK_INPUT].value);
+		clockBuffer.push(inputs[CLOCK_INPUT].getVoltage());
 	}
 
 	float currentClockLevel = 0.f;
@@ -88,7 +88,7 @@ void PianoRollModule::process(const ProcessArgs &args) {
 		clockTick |= clockInputTrigger.process(currentClockLevel);
 	}
 
-	if (resetInputTrigger.process(inputs[RESET_INPUT].value)) {
+	if (resetInputTrigger.process(inputs[RESET_INPUT].getVoltage())) {
     transport.reset();
 		gateOutputPulse.reset();
 		if (currentClockLevel > 1.f) {
@@ -97,15 +97,15 @@ void PianoRollModule::process(const ProcessArgs &args) {
 	}
 
 	if (inputs[PATTERN_INPUT].getChannels() > 0) {
-		int nextPattern = clamp(quantizePitch(inputs[PATTERN_INPUT].value)  - 48, 0, 63);
+		int nextPattern = clamp(quantizePitch(inputs[PATTERN_INPUT].getVoltage())  - 48, 0, 63);
     transport.setPattern(nextPattern);
 	}
 
-	if (recordingIn.process(inputs[RECORD_INPUT].value)) {
+	if (recordingIn.process(inputs[RECORD_INPUT].getVoltage())) {
     transport.toggleRecording();
 	}
 
-	if (runInputTrigger.process(inputs[RUN_INPUT].value)) {
+	if (runInputTrigger.process(inputs[RUN_INPUT].getVoltage())) {
 		transport.toggleRun();
 
 		if (currentClockLevel > 1.f && transport.currentStepInPattern() == -1) {
@@ -157,10 +157,10 @@ void PianoRollModule::process(const ProcessArgs &args) {
 
 	if (transport.isRecording() && transport.isRunning()) {
 
-		while (!voctInBuffer.full()) { voctInBuffer.push(inputs[VOCT_INPUT].value); }
-		while (!gateInBuffer.full()) { gateInBuffer.push(inputs[GATE_INPUT].value); }
-		while (!retriggerInBuffer.full()) { retriggerInBuffer.push(inputs[RETRIGGER_INPUT].value); }
-		while (!velocityInBuffer.full()) { velocityInBuffer.push(inputs[VELOCITY_INPUT].value); }
+		while (!voctInBuffer.full()) { voctInBuffer.push(inputs[VOCT_INPUT].getVoltage()); }
+		while (!gateInBuffer.full()) { gateInBuffer.push(inputs[GATE_INPUT].getVoltage()); }
+		while (!retriggerInBuffer.full()) { retriggerInBuffer.push(inputs[RETRIGGER_INPUT].getVoltage()); }
+		while (!velocityInBuffer.full()) { velocityInBuffer.push(inputs[VELOCITY_INPUT].getVoltage()); }
 
     int pattern = transport.currentPattern();
 		int measure = transport.currentMeasure();
@@ -225,12 +225,14 @@ void PianoRollModule::process(const ProcessArgs &args) {
 
 			gateOutputPulse.trigger(AUDITION_GATE_DURATION);
 
-			outputs[VELOCITY_OUTPUT].value = patternData.getStepVelocity(pattern, measure, stepInMeasure) * 10.f;
+			outputs[VELOCITY_OUTPUT].setChannels(1);
+			outputs[VELOCITY_OUTPUT].setVoltage(patternData.getStepVelocity(pattern, measure, stepInMeasure) * 10.f);
 
 			float octave = patternData.getStepPitch(pattern, measure, stepInMeasure) / 12;
 			float semitone = patternData.getStepPitch(pattern, measure, stepInMeasure) % 12;
 
-			outputs[VOCT_OUTPUT].value = (octave-4.f) + ((1.f/12.f) * semitone);
+			outputs[VELOCITY_OUTPUT].setChannels(1);
+			outputs[VOCT_OUTPUT].setVoltage((octave-4.f) + ((1.f/12.f) * semitone));
 		}
 	}
 
@@ -254,43 +256,54 @@ void PianoRollModule::process(const ProcessArgs &args) {
 
 			gateOutputPulse.trigger(runInputActive.value ? PLUGGED_GATE_DURATION : UNPLUGGED_GATE_DURATION);
 
-			outputs[VELOCITY_OUTPUT].value = patternData.getStepVelocity(pattern, measure, stepInMeasure) * 10.f;
+			outputs[VELOCITY_OUTPUT].setChannels(1);
+			outputs[VELOCITY_OUTPUT].setVoltage(patternData.getStepVelocity(pattern, measure, stepInMeasure) * 10.f);
 
 			float octave = patternData.getStepPitch(pattern, measure, stepInMeasure) / 12;
 			float semitone = patternData.getStepPitch(pattern, measure, stepInMeasure) % 12;
 
-			outputs[VOCT_OUTPUT].value = (octave-4.f) + ((1.f/12.f) * semitone);
+			outputs[VOCT_OUTPUT].setChannels(1);
+			outputs[VOCT_OUTPUT].setVoltage((octave-4.f) + ((1.f/12.f) * semitone));
 
 		} else {
 			gateOutputPulse.reset();
 		}
 	}
 
-	outputs[RETRIGGER_OUTPUT].value = retriggerOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
-	outputs[GATE_OUTPUT].value = gateOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
-	if (outputs[RETRIGGER_OUTPUT].getChannels() == 0 && outputs[RETRIGGER_OUTPUT].value > 0.f) {
+	outputs[RETRIGGER_OUTPUT].setChannels(1);
+	outputs[RETRIGGER_OUTPUT].setVoltage(retriggerOutputPulse.process(args.sampleTime) ? 10.f : 0.f);
+	outputs[GATE_OUTPUT].setChannels(1);
+	outputs[GATE_OUTPUT].setVoltage(gateOutputPulse.process(args.sampleTime) ? 10.f : 0.f);
+	if (outputs[RETRIGGER_OUTPUT].getChannels() == 0 && outputs[RETRIGGER_OUTPUT].getVoltage() > 0.f) {
 		// If we're not using the retrigger output, the gate output to 0 for the trigger duration instead
-		outputs[GATE_OUTPUT].value = 0.f;
+		outputs[GATE_OUTPUT].setVoltage(0.f);
 	}
-	outputs[END_OF_PATTERN_OUTPUT].value = eopOutputPulse.process(args.sampleTime) ? 10.f : 0.f;
+	outputs[END_OF_PATTERN_OUTPUT].setChannels(1);
+	outputs[END_OF_PATTERN_OUTPUT].setVoltage(eopOutputPulse.process(args.sampleTime) ? 10.f : 0.f);
 
-	if (inputs[GATE_INPUT].getChannels() > 0 && inputs[GATE_INPUT].value > 1.f) {
-		if (inputs[VOCT_INPUT].getChannels() > 0) { outputs[VOCT_OUTPUT].value = inputs[VOCT_INPUT].value; }
+	if (inputs[GATE_INPUT].getChannels() > 0 && inputs[GATE_INPUT].getVoltage() > 1.f) {
+		if (inputs[VOCT_INPUT].getChannels() > 0) { outputs[VOCT_OUTPUT].setVoltage(inputs[VOCT_INPUT].getVoltage()); }
 		if (inputs[GATE_INPUT].getChannels() > 0) { 
 			if (outputs[RETRIGGER_OUTPUT].getChannels() == 0 && inputs[RETRIGGER_INPUT].getChannels() > 0) {
-				outputs[GATE_OUTPUT].value = inputs[GATE_INPUT].value - inputs[RETRIGGER_INPUT].value;
+				outputs[GATE_OUTPUT].setVoltage(inputs[GATE_INPUT].getVoltage() - inputs[RETRIGGER_INPUT].getVoltage());
 			} else {
-				outputs[GATE_OUTPUT].value = inputs[GATE_INPUT].value;
+				outputs[GATE_OUTPUT].setVoltage(inputs[GATE_INPUT].getVoltage());
 			}
 		}
-		if (inputs[RETRIGGER_INPUT].getChannels() > 0) { outputs[RETRIGGER_OUTPUT].value = inputs[RETRIGGER_INPUT].value; }
-		if (inputs[VELOCITY_INPUT].getChannels() > 0) { outputs[VELOCITY_OUTPUT].value = inputs[VELOCITY_INPUT].value; }
+		if (inputs[RETRIGGER_INPUT].getChannels() > 0) { outputs[RETRIGGER_OUTPUT].setVoltage(inputs[RETRIGGER_INPUT].getVoltage()); }
+		if (inputs[VELOCITY_INPUT].getChannels() > 0) { outputs[VELOCITY_OUTPUT].setVoltage(inputs[VELOCITY_INPUT].getVoltage()); }
 	}
 
   // Send our chaining outputs
-	outputs[CLOCK_OUTPUT].value = inputs[CLOCK_INPUT].value;
-	outputs[RESET_OUTPUT].value = inputs[RESET_INPUT].value;
-	outputs[PATTERN_OUTPUT].value = transport.currentPattern() * (1.f/12.f);
-	outputs[RUN_OUTPUT].value = inputs[RUN_INPUT].value;
-	outputs[RECORD_OUTPUT].value = inputs[RECORD_INPUT].value;
+	outputs[CLOCK_OUTPUT].setChannels(1);
+	outputs[RESET_OUTPUT].setChannels(1);
+	outputs[PATTERN_OUTPUT].setChannels(1);
+	outputs[RUN_OUTPUT].setChannels(1);
+	outputs[RECORD_OUTPUT].setChannels(1);
+
+	outputs[CLOCK_OUTPUT].setVoltage(inputs[CLOCK_INPUT].getVoltage());
+	outputs[RESET_OUTPUT].setVoltage(inputs[RESET_INPUT].getVoltage());
+	outputs[PATTERN_OUTPUT].setVoltage(transport.currentPattern() * (1.f/12.f));
+	outputs[RUN_OUTPUT].setVoltage(inputs[RUN_INPUT].getVoltage());
+	outputs[RECORD_OUTPUT].setVoltage(inputs[RECORD_INPUT].getVoltage());
 }

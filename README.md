@@ -65,6 +65,14 @@ The recording inputs can have other uses. For example, you could have a blank pa
 
 Piano Rolls can be chained together for chords or other effects. The inputs on the left (`clk`, `reset`, `ptrn`, `run`, `rec`) are mirrored to the outputs below.
 
+## Sync
+
+Sync is a simplified and shrunk version of SEQ Adapter (see below).
+Any incoming "RESET" triggers are held until the next "CLOCK" input unless the current CLOCK input is high, in which case the RESET is played immediately.
+
+This should do a better job of keeping sequencers in sync with resets even while running.
+
+
 ## SEQ Adapter
 
 This module fixes the behaviour of some sequencers that skip or fail to sound the first step of their sequence when their clock is started after a reset.

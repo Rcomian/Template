@@ -56,10 +56,15 @@ struct DuckModule : BaseModule {
 };
 
 void DuckModule::process(const ProcessArgs &args) {
-	auto amount = clampSafe(follower.process(args, &inputs[LEFT_OVER_AUDIO].value, &inputs[RIGHT_OVER_AUDIO].value, params[RECOVERY_PARAM].value) * pow(params[AMOUNT_PARAM].value, 2.0), 0.f, 1.f);
+	auto leftOverAudioIn = inputs[LEFT_OVER_AUDIO].getVoltageSum();
+	auto rightOverAudioIn = inputs[RIGHT_OVER_AUDIO].getVoltageSum();
+	auto leftUnderAudioIn = inputs[LEFT_UNDER_AUDIO].getVoltageSum();
+	auto rightUnderAudioIn = inputs[RIGHT_UNDER_AUDIO].getVoltageSum();
 
-	outputs[LEFT_OUTPUT].value = crossfade(inputs[LEFT_UNDER_AUDIO].value, inputs[LEFT_OVER_AUDIO].value, amount);
-	outputs[RIGHT_OUTPUT].value = crossfade(inputs[RIGHT_UNDER_AUDIO].value, inputs[RIGHT_OVER_AUDIO].value, amount);
+	auto amount = clampSafe(follower.process(args, &leftOverAudioIn, &rightOverAudioIn, params[RECOVERY_PARAM].value) * pow(params[AMOUNT_PARAM].value, 2.0), 0.f, 1.f);
+
+	outputs[LEFT_OUTPUT].setVoltage(crossfade(leftUnderAudioIn, leftOverAudioIn, amount));
+	outputs[RIGHT_OUTPUT].setVoltage(crossfade(rightUnderAudioIn, rightOverAudioIn, amount));
 }
 
 struct DuckModuleWidget : BaseWidget {

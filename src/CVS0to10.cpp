@@ -39,10 +39,15 @@ struct CVS0to10Module : BaseModule {
 };
 
 void CVS0to10Module::step() {
-	outputs[CV_OUTPUT_A].value = params[AMOUNT_PARAM_A].value;
-	outputs[CV_OUTPUT_B].value = params[AMOUNT_PARAM_B].value;
-	outputs[CV_OUTPUT_C].value = params[AMOUNT_PARAM_C].value;
-	outputs[CV_OUTPUT_D].value = params[AMOUNT_PARAM_D].value;
+	outputs[CV_OUTPUT_A].setChannels(1);
+	outputs[CV_OUTPUT_B].setChannels(1);
+	outputs[CV_OUTPUT_C].setChannels(1);
+	outputs[CV_OUTPUT_D].setChannels(1);
+
+	outputs[CV_OUTPUT_A].setVoltage(params[AMOUNT_PARAM_A].value);
+	outputs[CV_OUTPUT_B].setVoltage(params[AMOUNT_PARAM_B].value);
+	outputs[CV_OUTPUT_C].setVoltage(params[AMOUNT_PARAM_C].value);
+	outputs[CV_OUTPUT_D].setVoltage(params[AMOUNT_PARAM_D].value);
 }
 
 struct CVS0to10ModuleWidget : BaseWidget {

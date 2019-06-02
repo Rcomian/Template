@@ -93,9 +93,9 @@ struct SEQAdapterModule : BaseModule {
 
 void SEQAdapterModule::step() {
   
-  bool runTriggered = runTrigger.process(inputs[RUN_INPUT].value);
-  bool resetTriggered = resetTrigger.process(inputs[RESET_INPUT].value);
-  bool clkReset = clkResetTrigger.process(inputs[CLK_INPUT].value);
+  bool runTriggered = runTrigger.process(inputs[RUN_INPUT].getVoltage());
+  bool resetTriggered = resetTrigger.process(inputs[RESET_INPUT].getVoltage());
+  bool clkReset = clkResetTrigger.process(inputs[CLK_INPUT].getVoltage());
 
   if (runTriggered) {
     running = !running;
@@ -114,12 +114,12 @@ void SEQAdapterModule::step() {
     redirectNextClk = true;
   }
 
-  float redirectedResetValue = redirectNextClk ? inputs[CLK_INPUT].value : inputs[RESET_INPUT].value;
+  float redirectedResetValue = redirectNextClk ? inputs[CLK_INPUT].getVoltage() : inputs[RESET_INPUT].getVoltage();
   float passThroughResetValue = running ? redirectedResetValue : 0;
 
-  outputs[RUN_OUTPUT].value = inputs[RUN_INPUT].value;
-  outputs[RESET_OUTPUT].value = passThroughResetValue;
-  outputs[CLK_OUTPUT].value = inputs[CLK_INPUT].value;
+  outputs[RUN_OUTPUT].setVoltage(inputs[RUN_INPUT].getVoltage());
+  outputs[RESET_OUTPUT].setVoltage(passThroughResetValue);
+  outputs[CLK_OUTPUT].setVoltage(inputs[CLK_INPUT].getVoltage());
 
 	lights[RUN_LIGHT].value = running ? 1.0 : 0.0;
 	lights[ARMED_LIGHT].value = redirectNextClk ? 1.0 : 0.0;

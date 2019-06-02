@@ -28,7 +28,8 @@ struct CVTglModule : BaseModule {
 };
 
 void CVTglModule::step() {
-	outputs[CV_OUTPUT].value = params[BUTTON_PARAM].value * 10.f;
+	outputs[CV_OUTPUT].setChannels(1);
+	outputs[CV_OUTPUT].setVoltage(params[BUTTON_PARAM].value * 10.f);
 }
 
 struct CKSSWhite : SvgSwitch {

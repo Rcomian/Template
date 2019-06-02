@@ -46,31 +46,37 @@
 			"slug": "rcm-gverb",
 			"name": "GVerb",
 			"description": "Dirty unstable reverb",
-			"tags": []
+			"tags": ["reverb"]
 		},
 		{
 			"slug": "rcm-duck",
 			"name": "Duck",
 			"description": "Basic audio ducking",
-			"tags": []
+			"tags": ["dynamics"]
 		},
 		{
 			"slug": "rcm-seq-adapter",
 			"name": "SEQ Adapter",
 			"description": "Nord style reset for syncing simple sequencers",
-			"tags": []
+			"tags": ["seq"]
+		},
+		{
+			"slug": "rcm-sync",
+			"name": "Sync",
+			"description": "Simplified Nord style reset for syncing simple sequencers",
+			"tags": ["seq"]
 		},
 		{
 			"slug": "rcm-pianoroll",
 			"name": "Piano Roll",
 			"description": "Simple Piano Roll for sequencing",
-			"tags": []
+			"tags": ["seq"]
 		},
 		{
 			"slug": "AudioInterface16",
 			"name": "Audio Interface 16",
 			"description": "A reskin of the Audio16 Interface (only kept for backwards compat)",
-			"tags": []
+			"tags": ["audio"]
 		}
 	]
 }
