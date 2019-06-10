@@ -6,11 +6,13 @@ extern "C"
 	#include "gverb.h"
 }
 
+using namespace std;
+
 struct Follower {
 	float level = 0.f;
 
 	void step(float* left, float* right) {
-		auto value = std::max(abs(*left), abs(*right));
+		auto value = max(abs(*left), abs(*right));
 
 		if (value >= level) {
 			level = value;
@@ -162,7 +164,7 @@ void GVerbModule::process(const rack::Module::ProcessArgs &args) {
 	auto leftAudioIn = inputs[LEFT_AUDIO].getVoltageSum();
 	auto rightAudioIn = inputs[RIGHT_AUDIO].getVoltageSum();
 
-	auto reset = std::max(params[RESET_PARAM].value, inputs[RESET_INPUT].getVoltage());
+	auto reset = max(params[RESET_PARAM].value, inputs[RESET_INPUT].getVoltage());
 	auto mix = getParam(MIX_PARAM, MIX_INPUT, MIX_POT_PARAM, 0.f, 1.f);
 
 	if (resetTrigger.process(reset)) {
