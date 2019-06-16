@@ -20,7 +20,3 @@ DISTRIBUTABLES += $(wildcard LICENSE*) res
 
 # Include the VCV Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
-
-dep:
-	$(MAKE) -C dep
-
