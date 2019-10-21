@@ -219,7 +219,7 @@ void GVerbModule::process(const rack::Module::ProcessArgs &args) {
 
 	if (gverbL != NULL || gverbR != NULL) {
 		handleParam(getParam(ROOM_SIZE_PARAM, ROOM_SIZE_INPUT, ROOM_SIZE_POT_PARAM, 2.f, 300.f), &p_room_size, gverb_set_roomsize);
-		handleParam(getParam(REV_TIME_PARAM, REV_TIME_INPUT, REV_TIME_POT_PARAM, 0.f, 10000.f), &p_rev_time, gverb_set_revtime);
+		handleParam(getParam(REV_TIME_PARAM, REV_TIME_INPUT, REV_TIME_POT_PARAM, 0.f, 10.f), &p_rev_time, gverb_set_revtime);
 		handleParam(getParam(DAMPING_PARAM, DAMPING_INPUT, DAMPING_POT_PARAM, 0.f, 1.f), &p_damping, gverb_set_damping);
 		handleParam(getParam(BANDWIDTH_PARAM, BANDWIDTH_INPUT, BANDWIDTH_POT_PARAM, 0.f, 1.f), &p_bandwidth, gverb_set_inputbandwidth);
 		handleParam(getParam(EARLY_LEVEL_PARAM, EARLY_LEVEL_INPUT, EARLY_LEVEL_POT_PARAM, 0.f, 1.f), &p_early_level, gverb_set_earlylevel);
