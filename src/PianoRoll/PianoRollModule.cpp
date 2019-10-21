@@ -14,6 +14,7 @@ PianoRollModule::PianoRollModule() : BaseModule(), runInputActive(false), transp
 void PianoRollModule::onReset() {
   transport.reset();
   patternData.reset();
+	processDivider.setDivision(32);
 }
 
 json_t *PianoRollModule::dataToJson() {
@@ -75,6 +76,8 @@ void PianoRollModule::onAdd() {
 }
 
 void PianoRollModule::process(const ProcessArgs &args) {
+	if (!processDivider.process()) return;
+
 	bool clockTick = false;
 
 	while((int)clockBuffer.size() <= clockDelay) {

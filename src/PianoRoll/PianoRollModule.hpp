@@ -50,6 +50,8 @@ struct PianoRollModule : BaseModule {
 	rack::dsp::PulseGenerator eopOutputPulse;
 	rack::dsp::PulseGenerator gateOutputPulse;
 
+	rack::dsp::ClockDivider processDivider;
+
 	Auditioner auditioner;
 
 	ValueChangeTrigger<bool> runInputActive;
