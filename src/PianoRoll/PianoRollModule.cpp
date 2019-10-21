@@ -274,15 +274,15 @@ void PianoRollModule::process(const ProcessArgs &args) {
 	}
 
 	outputs[RETRIGGER_OUTPUT].setChannels(1);
-	outputs[RETRIGGER_OUTPUT].setVoltage(retriggerOutputPulse.process(args.sampleTime) ? 10.f : 0.f);
+	outputs[RETRIGGER_OUTPUT].setVoltage(retriggerOutputPulse.process(args.sampleTime * processDivider.getDivision()) ? 10.f : 0.f);
 	outputs[GATE_OUTPUT].setChannels(1);
-	outputs[GATE_OUTPUT].setVoltage(gateOutputPulse.process(args.sampleTime) ? 10.f : 0.f);
+	outputs[GATE_OUTPUT].setVoltage(gateOutputPulse.process(args.sampleTime * processDivider.getDivision()) ? 10.f : 0.f);
 	if (outputs[RETRIGGER_OUTPUT].getChannels() == 0 && outputs[RETRIGGER_OUTPUT].getVoltage() > 0.f) {
 		// If we're not using the retrigger output, the gate output to 0 for the trigger duration instead
 		outputs[GATE_OUTPUT].setVoltage(0.f);
 	}
 	outputs[END_OF_PATTERN_OUTPUT].setChannels(1);
-	outputs[END_OF_PATTERN_OUTPUT].setVoltage(eopOutputPulse.process(args.sampleTime) ? 10.f : 0.f);
+	outputs[END_OF_PATTERN_OUTPUT].setVoltage(eopOutputPulse.process(args.sampleTime * processDivider.getDivision()) ? 10.f : 0.f);
 
 	if (inputs[GATE_INPUT].getChannels() > 0 && inputs[GATE_INPUT].getVoltage() > 1.f) {
 		if (inputs[VOCT_INPUT].getChannels() > 0) { outputs[VOCT_OUTPUT].setVoltage(inputs[VOCT_INPUT].getVoltage()); }
