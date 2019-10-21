@@ -67,6 +67,12 @@
 			"tags": ["Sequencer"]
 		},
 		{
+			"slug": "rcm-polynos",
+			"name": "Poly Noise",
+			"description": "Polyphonic white noise output. Polyphony matches src input",
+			"tags": ["Polyphonic", "Noise"]
+		},
+		{
 			"slug": "rcm-pianoroll",
 			"name": "Piano Roll",
 			"description": "Simple Piano Roll for sequencing",
