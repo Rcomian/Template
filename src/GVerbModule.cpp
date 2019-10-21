@@ -81,7 +81,7 @@ struct GVerbModule : BaseModule {
 		configParam(ROOM_SIZE_PARAM, 2.0, 300.0, 20.0);
 		configParam(DAMPING_PARAM, 0.0, 1.0, 0.98);
 
-		configParam(REV_TIME_PARAM, 0.0, 10000.0, 1.0);
+		configParam(REV_TIME_PARAM, 0.0, 10.0, 1.0);
 		configParam(BANDWIDTH_PARAM, 0.0, 1.0, 0.01);
 		configParam(EARLY_LEVEL_PARAM, 0.0, 1.0, 0.8);
 		configParam(TAIL_LEVEL_PARAM, 0.0, 1.0, 0.5);
